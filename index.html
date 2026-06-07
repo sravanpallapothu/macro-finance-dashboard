@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial & Macro Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:       #1a1a2e;
+  --ink-soft:  #4a5568;
+  --bg:        #f7f5f0;
+  --bg-card:   #ffffff;
+  --bg-warm:   #fdf9f4;
+  --accent:    #c84b31;
+  --gold:      #d4a853;
+  --border:    #e2ddd6;
+  --up:        #2d6a4f;
+  --down:      #c84b31;
+  --india:     #c84b31;
+  --usa:       #1a4480;
+  --global:    #5a4a8a;
+  --sidebar-w: 200px;
+  --font-serif:'DM Serif Display', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --radius:    10px;
+  --shadow:    0 2px 12px rgba(26,26,46,0.07);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.6;min-height:100vh}
+
+/* ── Header ── */
+.site-header{background:var(--ink);color:#fff;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;border-bottom:3px solid var(--accent)}
+.site-header h1{font-family:var(--font-serif);font-size:1.2rem;font-weight:400;display:flex;align-items:center;gap:.5rem}
+.header-meta{font-size:.78rem;color:rgba(255,255,255,.5);font-family:var(--font-mono);display:flex;align-items:center;gap:1rem}
+.live-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Top nav ── */
+.nav-bar{background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;padding:0 2rem;overflow-x:auto}
+.nav-tab{padding:.85rem 1.3rem;border:none;background:none;font-family:var(--font-sans);font-size:.87rem;font-weight:500;color:var(--ink-soft);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.nav-tab:hover{color:var(--ink)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── Page shell ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── Snapshot layout: sidebar + content ── */
+.snapshot-shell{display:flex;min-height:calc(100vh - 120px)}
+
+/* ── Frequency sidebar ── */
+.freq-sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);padding:1.2rem 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.freq-sidebar h3{font-family:var(--font-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);padding:.3rem 1.2rem .6rem;border-bottom:1px solid var(--border);margin-bottom:.4rem}
+.freq-btn{display:block;width:100%;text-align:left;padding:.65rem 1.2rem;border:none;background:none;font-family:var(--font-sans);font-size:.86rem;color:var(--ink-soft);cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.freq-btn:hover{background:var(--bg-warm);color:var(--ink)}
+.freq-btn.active{color:var(--accent);border-left-color:var(--accent);background:rgba(200,75,49,.05);font-weight:500}
+.freq-btn .freq-meta{display:block;font-size:.72rem;font-family:var(--font-mono);color:#bbb;margin-top:.1rem}
+
+/* ── Snapshot content area ── */
+.snap-content{flex:1;padding:1.5rem 2rem;overflow-y:auto;min-width:0}
+
+/* ── Data banner ── */
+.data-banner{background:var(--bg-card);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:var(--radius);padding:.65rem 1.1rem;margin-bottom:1.4rem;font-size:.81rem;color:var(--ink-soft);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.source-pills{display:flex;gap:.4rem;flex-wrap:wrap}
+.source-pill{padding:.18rem .55rem;border-radius:20px;font-size:.73rem;font-family:var(--font-mono);font-weight:500}
+.pill-india{background:rgba(200,75,49,.1);color:var(--india)}
+.pill-usa{background:rgba(26,68,128,.1);color:var(--usa)}
+.pill-global{background:rgba(90,74,138,.1);color:var(--global)}
+
+/* ── Section label ── */
+.section-label{display:flex;align-items:center;gap:.65rem;margin:1.8rem 0 .9rem}
+.section-label:first-of-type{margin-top:.2rem}
+.section-label h2{font-family:var(--font-serif);font-size:1rem;font-weight:400;color:var(--ink)}
+.country-badge{font-size:.7rem;font-family:var(--font-mono);font-weight:500;padding:.18rem .5rem;border-radius:4px;letter-spacing:.04em;text-transform:uppercase}
+.badge-india{background:rgba(200,75,49,.08);color:var(--india);border:1px solid rgba(200,75,49,.2)}
+.badge-usa{background:rgba(26,68,128,.08);color:var(--usa);border:1px solid rgba(26,68,128,.2)}
+.badge-global{background:rgba(90,74,138,.08);color:var(--global);border:1px solid rgba(90,74,138,.2)}
+.section-line{flex:1;height:1px;background:var(--border)}
+.section-sub{font-size:.73rem;color:#bbb;font-family:var(--font-mono);white-space:nowrap}
+
+/* ── Scorecard grid ── */
+.scorecard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.9rem;margin-bottom:.5rem}
+
+/* ── Scorecard tile ── */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem .9rem;box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.card.india::before{background:var(--india)}
+.card.usa::before{background:var(--usa)}
+.card.global::before{background:var(--global)}
+.card:hover{box-shadow:0 8px 32px rgba(26,26,46,.12);transform:translateY(-2px)}
+.card-label{font-size:.76rem;color:var(--ink-soft);font-weight:500;margin-bottom:.35rem;line-height:1.3;letter-spacing:.01em}
+.card-value{font-family:var(--font-serif);font-size:1.7rem;color:var(--ink);line-height:1.1;margin-bottom:.3rem;letter-spacing:-.02em}
+.card-meta{display:flex;align-items:center;gap:.35rem;font-size:.76rem;flex-wrap:wrap}
+.card-change{font-weight:600;display:flex;align-items:center;gap:.15rem}
+.card-change.up{color:var(--up)}
+.card-change.down{color:var(--down)}
+.card-change.flat{color:#aaa}
+.card-unit{color:var(--ink-soft);font-size:.72rem;font-family:var(--font-mono)}
+.card-period{color:#bbb;font-size:.7rem;margin-left:auto;font-family:var(--font-mono)}
+
+/* ── Missing data footnote ── */
+.missing-note{margin-top:1.5rem;padding:.7rem 1rem;background:var(--bg-warm);border:1px solid var(--border);border-radius:var(--radius);font-size:.78rem;color:var(--ink-soft);font-family:var(--font-mono)}
+.missing-note strong{color:var(--ink)}
+
+/* ── Time Series page ── */
+.ts-shell{padding:1.5rem 2rem;max-width:1100px;margin:0 auto}
+.ts-controls{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.4rem;margin-bottom:1.3rem;display:flex;align-items:flex-end;gap:1.1rem;flex-wrap:wrap}
+.ts-controls label{font-size:.74rem;font-weight:500;color:var(--ink-soft);display:block;margin-bottom:.28rem;letter-spacing:.03em;text-transform:uppercase;font-family:var(--font-mono)}
+.ts-controls select{font-family:var(--font-sans);font-size:.87rem;border:1px solid var(--border);border-radius:6px;padding:.48rem .7rem;background:var(--bg);color:var(--ink);min-width:260px;cursor:pointer}
+.ts-controls select:focus{outline:none;border-color:var(--accent)}
+.range-btns{display:flex;gap:.35rem;flex-wrap:wrap}
+.range-btn{padding:.38rem .7rem;border:1px solid var(--border);border-radius:5px;background:var(--bg);font-size:.78rem;font-family:var(--font-mono);cursor:pointer;color:var(--ink-soft);transition:all .15s}
+.range-btn:hover,.range-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.show-btn{padding:.5rem 1.4rem;background:var(--accent);color:#fff;border:none;border-radius:6px;font-family:var(--font-sans);font-size:.87rem;font-weight:500;cursor:pointer;transition:background .2s}
+.show-btn:hover{background:var(--ink)}
+.chart-container{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow);min-height:400px}
+.chart-placeholder{display:flex;align-items:center;justify-content:center;height:360px;color:var(--ink-soft);font-size:.88rem;flex-direction:column;gap:.5rem}
+.chart-placeholder .icon{font-size:2.2rem;opacity:.25}
+.ts-footer{margin-top:.75rem;font-size:.76rem;color:var(--ink-soft);font-family:var(--font-mono);display:flex;align-items:center;gap:.6rem}
+.dl-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:.18rem .55rem;cursor:pointer;font-size:.76rem;font-family:var(--font-mono)}
+
+/* ── Deep dive ── */
+.dd-shell{padding:1.5rem 2rem;max-width:1200px;margin:0 auto}
+.deep-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.3rem}
+@media(max-width:900px){.deep-grid{grid-template-columns:1fr}}
+.deep-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow)}
+.deep-card h3{font-family:var(--font-serif);font-size:.92rem;font-weight:400;margin-bottom:.9rem;color:var(--ink);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+
+/* ── About page ── */
+.about-shell{padding:2rem;max-width:860px;margin:0 auto}
+.readme-hero{background:var(--ink);color:#fff;border-radius:var(--radius);padding:2.2rem 2rem;margin-bottom:1.8rem;position:relative;overflow:hidden}
+.readme-hero::after{content:'🇮🇳';position:absolute;right:1.8rem;top:50%;transform:translateY(-50%);font-size:5rem;opacity:.08}
+.readme-hero h2{font-family:var(--font-serif);font-size:1.7rem;font-weight:400;margin-bottom:.4rem}
+.readme-hero p{color:rgba(255,255,255,.65);font-size:.88rem;max-width:520px;line-height:1.7}
+.readme-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.6rem;margin-bottom:1.3rem;box-shadow:var(--shadow)}
+.readme-section h3{font-family:var(--font-serif);font-size:1.05rem;font-weight:400;margin-bottom:.9rem;padding-bottom:.5rem;border-bottom:2px solid var(--border);color:var(--ink)}
+.readme-section p{font-size:.86rem;color:var(--ink-soft);line-height:1.75;margin-bottom:.65rem}
+.readme-section p:last-child{margin-bottom:0}
+.source-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:.4rem}
+.source-table th{text-align:left;padding:.45rem .7rem;background:var(--bg);color:var(--ink-soft);font-weight:500;font-family:var(--font-mono);font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--border)}
+.source-table td{padding:.55rem .7rem;border-bottom:1px solid var(--border);color:var(--ink);vertical-align:top;line-height:1.45}
+.source-table tr:last-child td{border-bottom:none}
+.source-table tr:hover td{background:var(--bg-warm)}
+.freq-badge{font-family:var(--font-mono);font-size:.7rem;padding:.12rem .45rem;border-radius:4px;background:var(--bg);border:1px solid var(--border);white-space:nowrap}
+.caveat-list{list-style:none;display:flex;flex-direction:column;gap:.65rem}
+.caveat-list li{padding:.65rem .9rem;background:var(--bg-warm);border-radius:6px;border-left:3px solid var(--gold);font-size:.83rem;color:var(--ink-soft);line-height:1.6}
+.caveat-list li strong{color:var(--ink)}
+.readme-footer{text-align:center;padding:1.2rem;font-size:.78rem;color:var(--ink-soft);border-top:1px solid var(--border);margin-top:1.8rem}
+.readme-footer a{color:var(--accent);text-decoration:none}
+
+/* ── Loading ── */
+#loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:.9rem;transition:opacity .5s}
+#loading-overlay.hidden{opacity:0;pointer-events:none}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading-overlay p{font-family:var(--font-mono);font-size:.8rem;color:var(--ink-soft)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .freq-sidebar{display:none}
+  .snap-content{padding:1rem}
+  .ts-shell,.dd-shell,.about-shell{padding:1rem}
+  .ts-controls{flex-direction:column;align-items:stretch}
+  .ts-controls select{min-width:unset}
+  .scorecard-grid{grid-template-columns:repeat(2,1fr)}
+  .card-value{font-size:1.35rem}
+  .site-header h1{font-size:1rem}
+  .header-meta{display:none}
+  /* Mobile freq toggle as horizontal strip */
+  .freq-strip{display:flex!important}
+}
+.freq-strip{display:none;gap:.4rem;overflow-x:auto;padding:.6rem 1rem;background:var(--bg-card);border-bottom:1px solid var(--border)}
+.freq-strip-btn{padding:.35rem .8rem;border:1px solid var(--border);border-radius:20px;font-size:.78rem;font-family:var(--font-mono);background:var(--bg);cursor:pointer;white-space:nowrap}
+.freq-strip-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <p id="loading-msg">Loading data…</p>
+</div>
+
+<header class="site-header">
+  <h1><span>🇮🇳</span> Financial &amp; Macro Tracker</h1>
+  <div class="header-meta">
+    <span><span class="live-dot"></span> Auto-updated</span>
+    <span id="last-updated-header">—</span>
+  </div>
+</header>
+
+<nav class="nav-bar">
+  <button class="nav-tab active" onclick="showPage('snapshot',this)">📊 Snapshot</button>
+  <button class="nav-tab" onclick="showPage('timeseries',this)">📈 Time Series</button>
+  <button class="nav-tab" onclick="showPage('deepdive',this)">🔍 Deep Dive</button>
+  <button class="nav-tab" onclick="showPage('about',this)">ℹ️ About</button>
+</nav>
+
+<!-- ═══ SNAPSHOT PAGE ═══ -->
+<div class="page active" id="page-snapshot">
+
+  <!-- Mobile frequency strip -->
+  <div class="freq-strip">
+    <button class="freq-strip-btn active" onclick="switchFreq('daily',this)">📅 Daily</button>
+    <button class="freq-strip-btn" onclick="switchFreq('weekly',this)">📆 Weekly</button>
+    <button class="freq-strip-btn" onclick="switchFreq('monthly',this)">🗓 Monthly</button>
+    <button class="freq-strip-btn" onclick="switchFreq('quarterly',this)">📊 Quarterly</button>
+  </div>
+
+  <div class="snapshot-shell">
+
+    <!-- Sidebar -->
+    <aside class="freq-sidebar">
+      <h3>Frequency</h3>
+      <button class="freq-btn active" onclick="switchFreq('daily',this)">
+        Daily
+        <span class="freq-meta">Yahoo Finance · FRED · NSE</span>
+      </button>
+      <button class="freq-btn" onclick="switchFreq('weekly',this)">
+        Weekly
+        <span class="freq-meta">RBI WSS · FRED / EIA</span>
+      </button>
+      <button class="freq-btn" onclick="switchFreq('monthly',this)">
+        Monthly
+        <span class="freq-meta">FRED via OECD</span>
+      </button>
+      <button class="freq-btn" onclick="switchFreq('quarterly',this)">
+        Quarterly
+        <span class="freq-meta">FRED via IMF/BIS</span>
+      </button>
+    </aside>
+
+    <!-- Content panels -->
+    <div class="snap-content">
+
+      <!-- DAILY PANEL -->
+      <div class="freq-panel active" id="panel-daily">
+        <div class="data-banner">
+          <span>Latest trading day values. Arrows = change from previous trading day.</span>
+          <div class="source-pills">
+            <span class="source-pill pill-india">🇮🇳 India</span>
+            <span class="source-pill pill-usa">🇺🇸 USA</span>
+            <span class="source-pill pill-global">🌐 Global</span>
+          </div>
+        </div>
+
+        <div class="section-label">
+          <h2>Indian Markets</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">Yahoo Finance · NSE/BSE</span>
+        </div>
+        <div class="scorecard-grid" id="sc-indian-markets"></div>
+
+        <div class="section-label">
+          <h2>Currency &amp; Capital Flows</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">Yahoo Finance · NSE</span>
+        </div>
+        <div class="scorecard-grid" id="sc-currency"></div>
+
+        <div class="section-label">
+          <h2>US Commodities</h2><span class="country-badge badge-global">🌐 Global / USA</span>
+          <div class="section-line"></div><span class="section-sub">Yahoo Finance · Front-month futures</span>
+        </div>
+        <div class="scorecard-grid" id="sc-commodities"></div>
+
+        <div class="section-label">
+          <h2>US Markets &amp; Rates</h2><span class="country-badge badge-usa">🇺🇸 USA</span>
+          <div class="section-line"></div><span class="section-sub">Yahoo Finance · FRED · Fed/CBOE</span>
+        </div>
+        <div class="scorecard-grid" id="sc-us-markets"></div>
+
+        <div id="missing-daily" class="missing-note" style="display:none"></div>
+      </div>
+
+      <!-- WEEKLY PANEL -->
+      <div class="freq-panel" id="panel-weekly">
+        <div class="data-banner">
+          <span>Weekly values. RBI WSS published every Friday. FRED series updated Monday–Tuesday. Arrows = change from previous week.</span>
+          <div class="source-pills">
+            <span class="source-pill pill-india">🇮🇳 RBI WSS</span>
+            <span class="source-pill pill-usa">🇺🇸 FRED / EIA</span>
+          </div>
+        </div>
+
+        <div class="section-label">
+          <h2>RBI — Forex Reserves</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">RBI Weekly Statistical Supplement</span>
+        </div>
+        <div class="scorecard-grid" id="sc-rbi-forex"></div>
+
+        <div class="section-label">
+          <h2>RBI — Money &amp; Banking</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">RBI WSS · Fortnightly SCB data</span>
+        </div>
+        <div class="scorecard-grid" id="sc-rbi-money"></div>
+
+        <div class="section-label">
+          <h2>US Weekly Indicators</h2><span class="country-badge badge-usa">🇺🇸 USA</span>
+          <div class="section-line"></div><span class="section-sub">FRED · EIA survey · Fed H.4.1</span>
+        </div>
+        <div class="scorecard-grid" id="sc-us-weekly"></div>
+
+        <div id="missing-weekly" class="missing-note" style="display:none"></div>
+      </div>
+
+      <!-- MONTHLY PANEL -->
+      <div class="freq-panel" id="panel-monthly">
+        <div class="data-banner">
+          <span>Monthly values via FRED (OECD source). Typical lag: 6–14 weeks behind original release. Arrows = change from previous month.</span>
+          <div class="source-pills"><span class="source-pill pill-india">🇮🇳 India · FRED via OECD</span></div>
+        </div>
+
+        <div class="section-label">
+          <h2>India Macro — Monthly</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">FRED via OECD · Updated 16th of each month</span>
+        </div>
+        <div class="scorecard-grid" id="sc-india-monthly"></div>
+
+        <div id="missing-monthly" class="missing-note" style="display:none"></div>
+      </div>
+
+      <!-- QUARTERLY PANEL -->
+      <div class="freq-panel" id="panel-quarterly">
+        <div class="data-banner">
+          <span>Quarterly values via FRED (IMF/BIS source). Typical lag: 6–14 weeks. Arrows = change from previous quarter.</span>
+          <div class="source-pills"><span class="source-pill pill-india">🇮🇳 India · FRED via IMF/BIS</span></div>
+        </div>
+
+        <div class="section-label">
+          <h2>India Macro — Quarterly</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">FRED via IMF/BIS · Updated 16th of each month</span>
+        </div>
+        <div class="scorecard-grid" id="sc-india-quarterly"></div>
+
+        <div id="missing-quarterly" class="missing-note" style="display:none"></div>
+      </div>
+
+    </div><!-- /snap-content -->
+  </div><!-- /snapshot-shell -->
+</div><!-- /page-snapshot -->
+
+<!-- ═══ TIME SERIES PAGE ═══ -->
+<div class="page" id="page-timeseries">
+  <div class="ts-shell">
+    <div class="ts-controls">
+      <div>
+        <label>Indicator</label>
+        <select id="ts-indicator"></select>
+      </div>
+      <div>
+        <label>Range</label>
+        <div class="range-btns">
+          <button class="range-btn" onclick="setRange(30,this)">1M</button>
+          <button class="range-btn" onclick="setRange(90,this)">3M</button>
+          <button class="range-btn" onclick="setRange(180,this)">6M</button>
+          <button class="range-btn active" onclick="setRange(0,this,'ytd')">YTD</button>
+          <button class="range-btn" onclick="setRange(365,this)">1Y</button>
+          <button class="range-btn" onclick="setRange(0,this,'all')">All</button>
+        </div>
+      </div>
+      <div><label>&nbsp;</label><button class="show-btn" onclick="renderTimeSeries()">Show Chart</button></div>
+    </div>
+    <div class="chart-container">
+      <div class="chart-placeholder" id="ts-placeholder">
+        <span class="icon">📈</span>
+        <span>Select an indicator and click Show Chart</span>
+      </div>
+      <div id="ts-chart" style="display:none;height:400px"></div>
+    </div>
+    <div class="ts-footer">
+      <span>Values of -999 filtered out (market closed / not yet released).</span>
+      <button class="dl-btn" onclick="downloadCSV()">⬇ CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DEEP DIVE PAGE ═══ -->
+<div class="page" id="page-deepdive">
+  <div class="dd-shell">
+    <div class="deep-grid">
+      <div class="deep-card"><h3>🇮🇳 Forex Reserve Composition (Latest Week)</h3><div id="chart-forex-pie" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🇮🇳 Total Forex Reserves — Weekly Trend</h3><div id="chart-forex-trend" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🇮🇳 M3 Broad Money — Trend</h3><div id="chart-m3-trend" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🇮🇳 India G-Sec 10yr Yield — Monthly</h3><div id="chart-gsec" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🇺🇸🇮🇳 US Fed Funds Rate vs India G-Sec Yield</h3><div id="chart-rates" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🌐 Gold (USD/oz) vs Brent Crude (USD/bbl)</h3><div id="chart-commodities" style="height:290px"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ABOUT PAGE ═══ -->
+<div class="page" id="page-about">
+  <div class="about-shell">
+    <div class="readme-hero">
+      <h2>Financial &amp; Macro Tracker</h2>
+      <p>An open-access, auto-updating dashboard covering Indian and global financial, monetary, and macroeconomic indicators. Built as a public good — free to use, free to share.</p>
+    </div>
+
+    <div class="readme-section">
+      <h3>About</h3>
+      <p>This dashboard reads from a Google Sheet that is auto-populated by Google Apps Script (Yahoo Finance + FRED data, runs daily) and Python scripts on GitHub Actions (NSE FII/DII flows, runs daily; RBI Weekly Statistical Supplement scraper, runs weekly). No manual intervention needed after setup.</p>
+      <p>Four pages: <strong>Snapshot</strong> (latest scorecards by frequency — toggle Daily/Weekly/Monthly/Quarterly in the sidebar), <strong>Time Series</strong> (any indicator over any range), <strong>Deep Dive</strong> (component charts), and this <strong>About</strong> page.</p>
+    </div>
+
+    <div class="readme-section">
+      <h3>Data Sources</h3>
+      <table class="source-table">
+        <thead><tr><th>Indicator Group</th><th>Country</th><th>Source</th><th>Frequency</th><th>Lag</th></tr></thead>
+        <tbody>
+          <tr><td>Sensex, Nifty 50</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance (^BSESN, ^NSEI)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>USD/INR (market spot rate)</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance (INR=X)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>FII / DII net cash flows</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>NSE India via nsefin Python library</td><td><span class="freq-badge">Daily</span></td><td>Same day after 3:30pm IST</td></tr>
+          <tr><td>Gold futures, Brent crude</td><td><span class="source-pill pill-global">🌐</span></td><td>Yahoo Finance (GC=F, BZ=F)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>US 10yr yield, Fed Funds Rate</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>Yahoo Finance (^TNX), FRED (DFF)</td><td><span class="freq-badge">Daily</span></td><td>Same day / 1-day lag</td></tr>
+          <tr><td>US retail gas price</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED (GASREGW) — EIA Monday survey</td><td><span class="freq-badge">Weekly</span></td><td>~1 day</td></tr>
+          <tr><td>US Fed gold stock</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED (WOFSRBGSA) — Fed H.4.1</td><td><span class="freq-badge">Weekly</span></td><td>~1 week</td></tr>
+          <tr><td>RBI Forex Reserves, M3, Bank Credit</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI Weekly Statistical Supplement (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>India CPI, G-Sec yield, Central Bank Rate</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Real GDP, Property Prices, Current Account</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via IMF/BIS</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="readme-section">
+      <h3>Caveats</h3>
+      <ul class="caveat-list">
+        <li><strong>Blank scorecards:</strong> A blank value means data was unavailable for that period (market holiday, exchange closed, or not yet released). The underlying data uses -999 as a sentinel which is filtered out before display.</li>
+        <li><strong>Gold &amp; Brent are futures, not spot:</strong> GC=F and BZ=F are front-month futures. Values captured at 6pm IST trigger time, not formal daily settlement.</li>
+        <li><strong>FRED India series lag (6–14 weeks):</strong> All India FRED series are sourced via OECD/IMF as intermediaries. For current CPI or repo rate refer to RBI/MoSPI directly.</li>
+        <li><strong>USD/INR is the market spot rate:</strong> The official RBI FBIL noon reference rate differs slightly and is not available via free API.</li>
+        <li><strong>US Fed Gold Stock is statutory value:</strong> WOFSRBGSA is valued at the frozen 1973 price of $42.22/oz — not market price. US gold stock (~8,133 tonnes) rarely changes.</li>
+        <li><strong>FII/DII data (nsefin) is provisional:</strong> NSE's internal API may change without notice. The most fragile part of the pipeline — monitor GitHub Actions logs if these columns stop updating.</li>
+      </ul>
+    </div>
+
+    <div class="readme-section">
+      <h3>Update Schedule</h3>
+      <table class="source-table">
+        <thead><tr><th>Tab</th><th>Trigger</th><th>Time (IST)</th></tr></thead>
+        <tbody>
+          <tr><td>DailyData — Yahoo Finance + FRED</td><td>Google Apps Script</td><td>6:00pm weekdays</td></tr>
+          <tr><td>DailyData — FII/DII</td><td>GitHub Actions</td><td>7:30pm weekdays</td></tr>
+          <tr><td>WeeklyData — FRED series</td><td>Google Apps Script</td><td>9:00am Mondays</td></tr>
+          <tr><td>WeeklyData — RBI WSS</td><td>GitHub Actions</td><td>9:00am Saturdays</td></tr>
+          <tr><td>MonthlyData + QuarterlyData</td><td>Google Apps Script</td><td>9:00am on 16th of each month</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="readme-footer">
+      Data: Yahoo Finance · FRED (St. Louis Fed) · RBI · NSE India · EIA · OECD · IMF · BIS. Not financial advice. &nbsp;·&nbsp;
+      <a href="https://github.com/sravanpallapothu" target="_blank">GitHub</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONFIGURATION
+// Data is read from static CSV files in the data/ folder.
+// These are refreshed daily by GitHub Actions (refresh_data.yml).
+// This approach is instant (same-origin, no CORS) — same as NFHS dashboard.
+// ═══════════════════════════════════════════════════════════════
+function csvUrl(key) {
+  // rbi_weekly maps to data/rbi_weekly.csv
+  return `data/${key}.csv`;
+}
+// No proxy needed — local files load instantly
+function csvUrlProxy(key) {
+  return csvUrl(key);
+}
+
+// ── Global state ──────────────────────────────────────────────
+const DATA = { daily:[], weekly:[], monthly:[], quarterly:[], rbi_weekly:[] };
+let tsRange = { days:0, mode:'ytd' };
+let currentTsData = null;
+
+// ── Scorecard definitions ─────────────────────────────────────
+const SCORECARD_DEFS = {
+  'sc-indian-markets': [
+    { label:'Sensex',   col:'Sensex',   src:'daily', unit:'pts',    country:'india',  prec:0 },
+    { label:'Nifty 50', col:'Nifty 50', src:'daily', unit:'pts',    country:'india',  prec:0 },
+  ],
+  'sc-currency': [
+    { label:'USD / INR',    col:'USD/INR',                src:'daily', unit:'₹ per $', country:'india', prec:2 },
+    { label:'FII Net Cash', col:'FII Net Cash (INR Cr)', src:'daily', unit:'₹ Cr',    country:'india', prec:0 },
+    { label:'DII Net Cash', col:'DII Net Cash (INR Cr)', src:'daily', unit:'₹ Cr',    country:'india', prec:0 },
+  ],
+  'sc-commodities': [
+    { label:'Gold',        col:'Gold (USD/oz)',         src:'daily',  unit:'USD/oz',  country:'global', prec:2 },
+    { label:'Brent Crude', col:'Brent Crude (USD/bbl)', src:'daily',  unit:'USD/bbl', country:'global', prec:2 },
+    { label:'US Gas',      col:'US Regular Gas Price (USD/gallon)', src:'weekly', unit:'USD/gal', country:'usa', prec:3 },
+  ],
+  'sc-us-markets': [
+    { label:'US 10yr Yield',     col:'US 10yr Yield (%)',   src:'daily',  unit:'% p.a.', country:'usa', prec:3 },
+    { label:'US Fed Funds Rate', col:'US Fed Funds Rate (%)', src:'daily', unit:'% p.a.', country:'usa', prec:3 },
+    { label:'US Fed Gold Stock', col:'US Fed Gold Stock (USD Mn, statutory price)', src:'weekly', unit:'USD Mn', country:'usa', prec:0 },
+  ],
+  'sc-rbi-forex': [
+    { label:'Total Forex Reserves', col:'Total Forex Reserves (USD Bn)',    src:'rbi_weekly', unit:'USD Bn',    country:'india', prec:3 },
+    { label:'FCA',                  col:'Foreign Currency Assets (USD Bn)', src:'rbi_weekly', unit:'USD Bn',    country:'india', prec:3 },
+    { label:'Gold Reserves',        col:'Gold Reserves (USD Bn)',           src:'rbi_weekly', unit:'USD Bn',    country:'india', prec:3 },
+    { label:'SDRs',                 col:'SDRs (USD Bn)',                    src:'rbi_weekly', unit:'USD Bn',    country:'india', prec:3 },
+    { label:'IMF Reserve Pos.',     col:'IMF Reserve Position (USD Bn)',    src:'rbi_weekly', unit:'USD Bn',    country:'india', prec:3 },
+  ],
+  'sc-rbi-money': [
+    { label:'M3 Broad Money',        col:'M3 Broad Money (INR Crore)',          src:'rbi_weekly', unit:'₹ Crore', country:'india', prec:0 },
+    { label:'Bank Credit SCB',       col:'Bank Credit - SCB (INR Crore)',       src:'rbi_weekly', unit:'₹ Crore', country:'india', prec:0 },
+    { label:'Aggregate Deposits',    col:'Aggregate Deposits - SCB (INR Crore)',src:'rbi_weekly', unit:'₹ Crore', country:'india', prec:0 },
+    { label:'Currency with Public',  col:'Currency with Public (INR Crore)',    src:'rbi_weekly', unit:'₹ Crore', country:'india', prec:0 },
+  ],
+  'sc-us-weekly': [
+    { label:'US Gas Price',      col:'US Regular Gas Price (USD/gallon)',              src:'weekly', unit:'USD/gal', country:'usa', prec:3 },
+    { label:'US Fed Gold Stock', col:'US Fed Gold Stock (USD Mn, statutory price)',   src:'weekly', unit:'USD Mn',  country:'usa', prec:0 },
+  ],
+  'sc-india-monthly': [
+    { label:'India CPI',         col:'India CPI (Index, 2015=100)', src:'monthly', unit:'Index',  country:'india', prec:2 },
+    { label:'Central Bank Rate', col:'India Central Bank Rate (%)', src:'monthly', unit:'% p.a.', country:'india', prec:3 },
+    { label:'India G-Sec 10yr',  col:'India 10yr G-Sec Yield (%)', src:'monthly', unit:'% p.a.', country:'india', prec:3 },
+  ],
+  'sc-india-quarterly': [
+    { label:'India Real GDP',       col:'India Real GDP (Mn INR)',                         src:'quarterly', unit:'Mn ₹',  country:'india', prec:0 },
+    { label:'Property Price Index', col:'India Real Property Price (Index, 2010=100)',     src:'quarterly', unit:'Index', country:'india', prec:2 },
+    { label:'Current Account',      col:'India Current Account Balance (USD Mn, SA)',      src:'quarterly', unit:'USD Mn',country:'india', prec:0 },
+    { label:'Financial Account',    col:'India Financial Account Net (USD Mn)',            src:'quarterly', unit:'USD Mn',country:'india', prec:0 },
+  ],
+};
+
+// ── CSV row splitter ──────────────────────────────────────────
+function splitRow(line) {
+  const cols = []; let cur = '', inQ = false;
+  for (const c of line) {
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
+    else cur += c;
+  }
+  cols.push(cur);
+  return cols;
+}
+
+// ── Clean a raw cell value ────────────────────────────────────
+// Strips $, commas, quotes; detects -999 variants
+function cleanVal(raw) {
+  if (!raw && raw !== 0) return '';
+  let s = raw.toString().trim().replace(/^"+|"+$/g, '');
+  // Handle -$999 and -$999.000 patterns (WeeklyData missing sentinel)
+  if (s === '-$999' || s === '-$999.000' || s === '-999' || s === '-999.000' || s === '-999.00') return '__MISSING__';
+  // Strip $ prefix and commas
+  s = s.replace(/^\$/, '').replace(/,/g, '');
+  return s;
+}
+
+// ── Parse CSV text into array of row objects ──────────────────
+function parseCSV(text, tabName) {
+  const raw = text.trim().split('\n');
+  if (raw.length < 2) return [];
+
+  // Find header row: first row starting with Date or Period
+  let hIdx = 0;
+  for (let i = 0; i < Math.min(6, raw.length); i++) {
+    const first = splitRow(raw[i])[0].replace(/"/g,'').trim();
+    if (first === 'Date' || first === 'Period') { hIdx = i; break; }
+  }
+
+  const headers = splitRow(raw[hIdx]).map(h => h.replace(/"/g,'').trim());
+  const rows = [];
+
+  for (let i = hIdx + 1; i < raw.length; i++) {
+    const cells = splitRow(raw[i]);
+    if (!cells.length) continue;
+
+    const dateRaw = cells[0] ? cells[0].replace(/"/g,'').trim() : '';
+    if (!dateRaw) continue;
+
+    // Skip timestamp rows (e.g. "6/7/2026 18:14:16")
+    if (/\d+\/\d+\/\d{4}\s+\d+:\d+/.test(dateRaw)) continue;
+
+    const obj = {};
+    headers.forEach((h, j) => {
+      obj[h] = cleanVal(cells[j] || '');
+    });
+    // Normalise date key
+    if (obj['Date'] !== undefined) obj['Date'] = dateRaw;
+    else if (obj['Period'] !== undefined) obj['Period'] = dateRaw;
+
+    rows.push(obj);
+  }
+  return rows;
+}
+
+// ── For WeeklyData: merge alternating rows ────────────────────
+// Gas price is on Monday rows, Fed Gold on Wednesday rows.
+// We flatten them into a combined record per date.
+function mergeWeeklyRows(rows) {
+  // Build a map keyed by just the week number (Mon-Sun bucket)
+  // Strategy: just keep all rows as-is but fill forward missing values
+  // Since alternating rows have -999 in the other column, we need to
+  // find the latest non-missing value for each column independently
+  // The getLatest() function already handles this — no merge needed.
+  return rows;
+}
+
+// ── Fetch with CORS proxy fallback ────────────────────────────
+async function fetchCSV(key) {
+  const urls = [csvUrl(key), csvUrlProxy(key)];
+  for (const url of urls) {
+    if (!url) continue;
+    try {
+      const resp = await fetch(url, { mode: 'cors' });
+      if (resp.ok) {
+        const text = await resp.text();
+        if (text && text.length > 50) return text;
+      }
+    } catch(e) {
+      console.warn(`Fetch failed for ${key} (${url}):`, e.message);
+    }
+  }
+  return null;
+}
+
+// ── Load all data ─────────────────────────────────────────────
+async function loadAllData() {
+  const keys = ['daily','weekly','monthly','quarterly','rbi_weekly'];
+  let loaded = 0;
+  await Promise.all(keys.map(async key => {
+    document.getElementById('loading-msg').textContent = `Loading ${key} data…`;
+    const text = await fetchCSV(key);
+    if (text) {
+      DATA[key] = parseCSV(text, key);
+      loaded++;
+      console.log(`${key}: ${DATA[key].length} rows loaded`);
+    } else {
+      console.warn(`${key}: failed to load`);
+      DATA[key] = [];
+    }
+  }));
+  return loaded;
+}
+
+// ── Get latest non-missing value ──────────────────────────────
+function isMissing(v) {
+  return v === '__MISSING__' || v === '' || v === null || v === undefined
+      || isNaN(parseFloat(v)) || parseFloat(v) === -999;
+}
+
+function getLatest(rows, col) {
+  const dateKey = rows.length && rows[0]['Date'] !== undefined ? 'Date' : 'Period';
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const raw = rows[i][col];
+    if (!isMissing(raw)) {
+      return { value: parseFloat(raw), date: rows[i][dateKey], idx: i };
+    }
+  }
+  return null;
+}
+
+function getPrev(rows, col, fromIdx) {
+  const dateKey = rows.length && rows[0]['Date'] !== undefined ? 'Date' : 'Period';
+  for (let i = fromIdx - 1; i >= 0; i--) {
+    const raw = rows[i][col];
+    if (!isMissing(raw)) {
+      return { value: parseFloat(raw), date: rows[i][dateKey] };
+    }
+  }
+  return null;
+}
+
+// ── Format numbers ────────────────────────────────────────────
+function fmt(v, prec) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  const abs = Math.abs(v);
+  if (abs >= 1e7) return (v/1e7).toFixed(2) + ' Cr';
+  if (abs >= 1e5) return (v/1e5).toFixed(2) + ' L';
+  if (abs >= 1e3) return v.toLocaleString('en-IN', {maximumFractionDigits: prec});
+  return v.toFixed(prec);
+}
+
+// ── Render scorecards ─────────────────────────────────────────
+function renderScorecards() {
+  const panelMissing = { daily:[], weekly:[], monthly:[], quarterly:[] };
+
+  Object.entries(SCORECARD_DEFS).forEach(([gridId, defs]) => {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    defs.forEach(def => {
+      const rows   = DATA[def.src] || [];
+      const latest = rows.length ? getLatest(rows, def.col) : null;
+      const prev   = latest ? getPrev(rows, def.col, latest.idx) : null;
+
+      if (!latest) {
+        panelMissing[def.src].push(def.label);
+        return;
+      }
+
+      let changeHTML = '', changeClass = 'flat';
+      if (prev) {
+        const diff = latest.value - prev.value;
+        const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+        changeClass = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+        const absDiff = Math.abs(diff);
+        const dispDiff = absDiff < 0.001 ? diff.toFixed(4) : absDiff >= 1000 ? absDiff.toFixed(0) : absDiff.toFixed(def.prec);
+        const sign = diff > 0 ? '+' : diff < 0 ? '−' : '';
+        changeHTML = `<span class="card-change ${changeClass}">${arrow} ${sign}${dispDiff}</span>`;
+      }
+
+      const dispDate = (latest.date || '').replace(/^\d{4}-/,'');
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="card ${def.country}">
+          <div class="card-label">${def.label}</div>
+          <div class="card-value">${fmt(latest.value, def.prec)}</div>
+          <div class="card-meta">
+            ${changeHTML}
+            <span class="card-unit">${def.unit}</span>
+            <span class="card-period">${dispDate}</span>
+          </div>
+        </div>
+      `);
+    });
+  });
+
+  ['daily','weekly','monthly','quarterly'].forEach(freq => {
+    const el = document.getElementById('missing-' + freq);
+    if (!el) return;
+    const missing = panelMissing[freq];
+    if (missing.length) {
+      el.style.display = 'block';
+      el.innerHTML = `<strong>* Not yet available:</strong> ${missing.join(', ')} — data not in sheet or all values missing.`;
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+// ── Populate time series dropdown ─────────────────────────────
+function populateTsDropdown() {
+  const sel = document.getElementById('ts-indicator');
+  sel.innerHTML = '';
+  const groups = { daily:'📅 Daily', weekly:'📆 Weekly (FRED)', rbi_weekly:'📆 Weekly (RBI WSS)', monthly:'🗓 Monthly', quarterly:'📊 Quarterly' };
+  const dateKeys = new Set(['Date','Period']);
+  Object.entries(groups).forEach(([src, label]) => {
+    const rows = DATA[src];
+    if (!rows.length) return;
+    const cols = Object.keys(rows[0]).filter(k => !dateKeys.has(k));
+    if (!cols.length) return;
+    const og = document.createElement('optgroup');
+    og.label = label;
+    cols.forEach(col => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({col, src});
+      opt.textContent = col;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+}
+
+// ── Time series ───────────────────────────────────────────────
+function renderTimeSeries() {
+  const sel = document.getElementById('ts-indicator');
+  if (!sel.value) return;
+  const {col, src} = JSON.parse(sel.value);
+  const rows = DATA[src];
+  if (!rows.length) return;
+
+  const dateKey = rows[0]['Date'] !== undefined ? 'Date' : 'Period';
+  const now = new Date();
+
+  let filtered = rows.filter(r => !isMissing(r[col]));
+
+  if (tsRange.mode === 'ytd') {
+    const jan1 = new Date(now.getFullYear(), 0, 1);
+    filtered = filtered.filter(r => new Date(r[dateKey]) >= jan1);
+  } else if (tsRange.mode === 'days' && tsRange.days > 0) {
+    const cut = new Date(now); cut.setDate(cut.getDate() - tsRange.days);
+    filtered = filtered.filter(r => new Date(r[dateKey]) >= cut);
+  }
+
+  const xs = filtered.map(r => r[dateKey]);
+  const ys = filtered.map(r => parseFloat(r[col]));
+  currentTsData = {xs, ys, col, src};
+
+  const colours = {daily:'#c84b31', weekly:'#2d6a4f', monthly:'#1a4480', quarterly:'#5a4a8a'};
+
+  Plotly.newPlot('ts-chart', [{
+    x:xs, y:ys, type:'scatter', mode:'lines', name:col,
+    line:{color: colours[src]||'#c84b31', width:2},
+    hovertemplate:'<b>%{x}</b><br>%{y}<extra></extra>',
+    connectgaps: false,
+  }], {
+    margin:{t:35,r:20,b:50,l:70},
+    paper_bgcolor:'transparent', plot_bgcolor:'transparent',
+    font:{family:'DM Sans, sans-serif', size:12, color:'#4a5568'},
+    xaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false},
+    yaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false,
+           title:{text: col.length>35 ? col.slice(0,35)+'…' : col, font:{size:11}}},
+    title:{text: col, font:{size:14, family:'DM Serif Display, serif'}, x:0.02},
+    hovermode:'x unified',
+    hoverlabel:{bgcolor:'#1a1a2e', font:{color:'#fff', family:'DM Mono, monospace', size:12}},
+  }, {responsive:true, displayModeBar:false});
+
+  document.getElementById('ts-placeholder').style.display = 'none';
+  document.getElementById('ts-chart').style.display = 'block';
+}
+
+function setRange(days, btn, mode) {
+  tsRange = {days, mode: mode || (days>0 ? 'days' : 'all')};
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (document.getElementById('ts-chart').style.display !== 'none') renderTimeSeries();
+}
+
+function downloadCSV() {
+  if (!currentTsData) return;
+  const {xs, ys, col} = currentTsData;
+  const lines = ['Date,' + col, ...xs.map((x,i) => `${x},${ys[i]}`)];
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = col.replace(/[^a-z0-9]/gi,'_') + '.csv';
+  a.click();
+}
+
+// ── Deep dive ─────────────────────────────────────────────────
+function renderDeepDive() {
+  const cfg = {responsive:true, displayModeBar:false};
+  const lay = {
+    margin:{t:20,r:40,b:50,l:70},
+    paper_bgcolor:'transparent', plot_bgcolor:'transparent',
+    font:{family:'DM Sans, sans-serif', size:11, color:'#4a5568'},
+    xaxis:{showgrid:true, gridcolor:'#e2ddd6'},
+    yaxis:{showgrid:true, gridcolor:'#e2ddd6'},
+  };
+
+  function series(rows, col) {
+    const dk = rows.length && rows[0]['Date'] !== undefined ? 'Date' : 'Period';
+    const xs=[], ys=[];
+    rows.forEach(r => {
+      if (!isMissing(r[col])) { xs.push(r[dk]); ys.push(parseFloat(r[col])); }
+    });
+    return {xs, ys};
+  }
+
+  const W = DATA.rbi_weekly.length ? DATA.rbi_weekly : DATA.weekly, D = DATA.daily, M = DATA.monthly;
+
+  // Forex pie
+  if (W.length) {
+    const fca  = getLatest(W,'Foreign Currency Assets (USD Bn)');
+    const gold = getLatest(W,'Gold Reserves (USD Bn)');
+    const sdr  = getLatest(W,'SDRs (USD Bn)');
+    const imf  = getLatest(W,'IMF Reserve Position (USD Bn)');
+    const vals = [fca,gold,sdr,imf].map(x=>x?x.value:0);
+    if (vals.some(v=>v>0)) {
+      Plotly.newPlot('chart-forex-pie',[{
+        type:'pie', labels:['FCA','Gold','SDRs','IMF'],
+        values:vals, marker:{colors:['#1a4480','#d4a853','#2d6a4f','#c84b31']},
+        textinfo:'label+percent',
+        hovertemplate:'<b>%{label}</b><br>$%{value:.2f} Bn<extra></extra>',
+      }],{...lay,margin:{t:10,r:10,b:10,l:10}},cfg);
+    }
+
+    // Forex trend
+    const fxT = series(W,'Total Forex Reserves (USD Bn)');
+    const fxG = series(W,'Gold Reserves (USD Bn)');
+    Plotly.newPlot('chart-forex-trend',[
+      {x:fxT.xs,y:fxT.ys,name:'Total',type:'scatter',mode:'lines',line:{color:'#1a4480',width:2}},
+      {x:fxG.xs,y:fxG.ys,name:'Gold', type:'scatter',mode:'lines',line:{color:'#d4a853',width:2},yaxis:'y2'},
+    ],{...lay,yaxis:{...lay.yaxis,title:'Total (USD Bn)'},yaxis2:{overlaying:'y',side:'right',title:'Gold (USD Bn)',showgrid:false}},cfg);
+
+    // M3 trend
+    const m3 = series(W,'M3 Broad Money (INR Bn)');
+    Plotly.newPlot('chart-m3-trend',[
+      {x:m3.xs,y:m3.ys,name:'M3',type:'scatter',mode:'lines',
+       line:{color:'#c84b31',width:2},fill:'tozeroy',fillcolor:'rgba(200,75,49,0.06)'},
+    ],{...lay,yaxis:{...lay.yaxis,title:'INR Bn'}},cfg);
+  }
+
+  // G-Sec monthly
+  if (M.length) {
+    const gsec = series(M,'India 10yr G-Sec Yield (%)');
+    Plotly.newPlot('chart-gsec',[
+      {x:gsec.xs,y:gsec.ys,name:'India G-Sec 10yr',type:'scatter',
+       mode:'lines+markers',line:{color:'#c84b31',width:2},marker:{size:5}},
+    ],{...lay,yaxis:{...lay.yaxis,title:'% p.a.'}},cfg);
+
+    // Rates comparison
+    if (D.length) {
+      const ff  = series(D,'US Fed Funds Rate (%)');
+      const ust = series(D,'US 10yr Yield (%)');
+      Plotly.newPlot('chart-rates',[
+        {x:ff.xs, y:ff.ys, name:'🇺🇸 Fed Funds',   type:'scatter',mode:'lines',line:{color:'#1a4480',width:2}},
+        {x:ust.xs,y:ust.ys,name:'🇺🇸 US 10yr',     type:'scatter',mode:'lines',line:{color:'#1a4480',dash:'dot',width:1.5}},
+        {x:gsec.xs,y:gsec.ys,name:'🇮🇳 India G-Sec',type:'scatter',mode:'lines+markers',line:{color:'#c84b31',width:2},marker:{size:4}},
+      ],{...lay,yaxis:{...lay.yaxis,title:'% p.a.'}},cfg);
+    }
+  }
+
+  // Gold vs Brent
+  if (D.length) {
+    const gd = series(D,'Gold (USD/oz)');
+    const br = series(D,'Brent Crude (USD/bbl)');
+    Plotly.newPlot('chart-commodities',[
+      {x:gd.xs,y:gd.ys,name:'Gold USD/oz',  type:'scatter',mode:'lines',line:{color:'#d4a853',width:2}},
+      {x:br.xs,y:br.ys,name:'Brent USD/bbl',type:'scatter',mode:'lines',line:{color:'#2d3561',width:2},yaxis:'y2'},
+    ],{...lay,yaxis:{...lay.yaxis,title:'Gold USD/oz'},yaxis2:{overlaying:'y',side:'right',title:'Brent USD/bbl',showgrid:false}},cfg);
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'deepdive') renderDeepDive();
+}
+
+function switchFreq(freq, btn) {
+  document.querySelectorAll('.freq-panel').forEach(p => p.style.display = 'none');
+  const panel = document.getElementById('panel-' + freq);
+  if (panel) panel.style.display = 'block';
+  document.querySelectorAll('.freq-btn, .freq-strip-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Also mark the sidebar button
+  document.querySelectorAll('.freq-btn').forEach(b => {
+    if (b.textContent.trim().toLowerCase().startsWith(freq)) b.classList.add('active');
+  });
+}
+
+// ── Header ────────────────────────────────────────────────────
+function updateHeader() {
+  const d = DATA.daily;
+  for (let i = d.length - 1; i >= 0; i--) {
+    const date = d[i]['Date'];
+    if (date && !/\d+\/\d+\/\d{4}\s/.test(date)) {
+      document.getElementById('last-updated-header').textContent = 'Data to ' + date;
+      return;
+    }
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────
+(async () => {
+  const loaded = await loadAllData();
+  renderScorecards();
+  populateTsDropdown();
+  updateHeader();
+
+  // Show first panel only
+  document.querySelectorAll('.freq-panel').forEach((p, i) => {
+    p.style.display = i === 0 ? 'block' : 'none';
+  });
+
+  const overlay = document.getElementById('loading-overlay');
+  overlay.classList.add('hidden');
+  setTimeout(() => overlay.remove(), 600);
+
+  console.log('Loaded tabs:', Object.entries(DATA).map(([k,v]) => `${k}:${v.length}`).join(', '));
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:       #1a1a2e;
+  --ink-soft:  #4a5568;
+  --bg:        #f7f5f0;
+  --bg-card:   #ffffff;
+  --bg-warm:   #fdf9f4;
+  --accent:    #c84b31;
+  --gold:      #d4a853;
+  --border:    #e2ddd6;
+  --up:        #2d6a4f;
+  --down:      #c84b31;
+  --india:     #c84b31;
+  --usa:       #1a4480;
+  --global:    #5a4a8a;
+  --sidebar-w: 200px;
+  --font-serif:'DM Serif Display', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --radius:    10px;
+  --shadow:    0 2px 12px rgba(26,26,46,0.07);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.6;min-height:100vh}
+
+/* ── Header ── */
+.site-header{background:var(--ink);color:#fff;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;border-bottom:3px solid var(--accent)}
+.site-header h1{font-family:var(--font-serif);font-size:1.2rem;font-weight:400;display:flex;align-items:center;gap:.5rem}
+.header-meta{font-size:.78rem;color:rgba(255,255,255,.5);font-family:var(--font-mono);display:flex;align-items:center;gap:1rem}
+.live-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Top nav ── */
+.nav-bar{background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;padding:0 2rem;overflow-x:auto}
+.nav-tab{padding:.85rem 1.3rem;border:none;background:none;font-family:var(--font-sans);font-size:.87rem;font-weight:500;color:var(--ink-soft);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.nav-tab:hover{color:var(--ink)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── Page shell ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── Snapshot layout: sidebar + content ── */
+.snapshot-shell{display:flex;min-height:calc(100vh - 120px)}
+
+/* ── Frequency sidebar ── */
+.freq-sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);padding:1.2rem 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.freq-sidebar h3{font-family:var(--font-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);padding:.3rem 1.2rem .6rem;border-bottom:1px solid var(--border);margin-bottom:.4rem}
+.freq-btn{display:block;width:100%;text-align:left;padding:.65rem 1.2rem;border:none;background:none;font-family:var(--font-sans);font-size:.86rem;color:var(--ink-soft);cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.freq-btn:hover{background:var(--bg-warm);color:var(--ink)}
+.freq-btn.active{color:var(--accent);border-left-color:var(--accent);background:rgba(200,75,49,.05);font-weight:500}
+.freq-btn .freq-meta{display:block;font-size:.72rem;font-family:var(--font-mono);color:#bbb;margin-top:.1rem}
+
+/* ── Snapshot content area ── */
+.snap-content{flex:1;padding:1.5rem 2rem;overflow-y:auto;min-width:0}
+
+/* ── Data banner ── */
+.data-banner{background:var(--bg-card);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:var(--radius);padding:.65rem 1.1rem;margin-bottom:1.4rem;font-size:.81rem;color:var(--ink-soft);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.source-pills{display:flex;gap:.4rem;flex-wrap:wrap}
+.source-pill{padding:.18rem .55rem;border-radius:20px;font-size:.73rem;font-family:var(--font-mono);font-weight:500}
+.pill-india{background:rgba(200,75,49,.1);color:var(--india)}
+.pill-usa{background:rgba(26,68,128,.1);color:var(--usa)}
+.pill-global{background:rgba(90,74,138,.1);color:var(--global)}
+
+/* ── Section label ── */
+.section-label{display:flex;align-items:center;gap:.65rem;margin:1.8rem 0 .9rem}
+.section-label:first-of-type{margin-top:.2rem}
+.section-label h2{font-family:var(--font-serif);font-size:1rem;font-weight:400;color:var(--ink)}
+.country-badge{font-size:.7rem;font-family:var(--font-mono);font-weight:500;padding:.18rem .5rem;border-radius:4px;letter-spacing:.04em;text-transform:uppercase}
+.badge-india{background:rgba(200,75,49,.08);color:var(--india);border:1px solid rgba(200,75,49,.2)}
+.badge-usa{background:rgba(26,68,128,.08);color:var(--usa);border:1px solid rgba(26,68,128,.2)}
+.badge-global{background:rgba(90,74,138,.08);color:var(--global);border:1px solid rgba(90,74,138,.2)}
+.section-line{flex:1;height:1px;background:var(--border)}
+.section-sub{font-size:.73rem;color:#bbb;font-family:var(--font-mono);white-space:nowrap}
+
+/* ── Scorecard grid ── */
+.scorecard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.9rem;margin-bottom:.5rem}
+
+/* ── Scorecard tile ── */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem .9rem;box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.card.india::before{background:var(--india)}
+.card.usa::before{background:var(--usa)}
+.card.global::before{background:var(--global)}
+.card:hover{box-shadow:0 8px 32px rgba(26,26,46,.12);transform:translateY(-2px)}
+.card-label{font-size:.76rem;color:var(--ink-soft);font-weight:500;margin-bottom:.35rem;line-height:1.3;letter-spacing:.01em}
+.card-value{font-family:var(--font-serif);font-size:1.7rem;color:var(--ink);line-height:1.1;margin-bottom:.3rem;letter-spacing:-.02em}
+.card-meta{display:flex;align-items:center;gap:.35rem;font-size:.76rem;flex-wrap:wrap}
+.card-change{font-weight:600;display:flex;align-items:center;gap:.15rem}
+.card-change.up{color:var(--up)}
+.card-change.down{color:var(--down)}
+.card-change.flat{color:#aaa}
+.card-unit{color:var(--ink-soft);font-size:.72rem;font-family:var(--font-mono)}
+.card-period{color:#bbb;font-size:.7rem;margin-left:auto;font-family:var(--font-mono)}
+
+/* ── Missing data footnote ── */
+.missing-note{margin-top:1.5rem;padding:.7rem 1rem;background:var(--bg-warm);border:1px solid var(--border);border-radius:var(--radius);font-size:.78rem;color:var(--ink-soft);font-family:var(--font-mono)}
+.missing-note strong{color:var(--ink)}
+
+/* ── Time Series page ── */
+.ts-shell{padding:1.5rem 2rem;max-width:1100px;margin:0 auto}
+.ts-controls{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.4rem;margin-bottom:1.3rem;display:flex;align-items:flex-end;gap:1.1rem;flex-wrap:wrap}
+.ts-controls label{font-size:.74rem;font-weight:500;color:var(--ink-soft);display:block;margin-bottom:.28rem;letter-spacing:.03em;text-transform:uppercase;font-family:var(--font-mono)}
+.ts-controls select{font-family:var(--font-sans);font-size:.87rem;border:1px solid var(--border);border-radius:6px;padding:.48rem .7rem;background:var(--bg);color:var(--ink);min-width:260px;cursor:pointer}
+.ts-controls select:focus{outline:none;border-color:var(--accent)}
+.range-btns{display:flex;gap:.35rem;flex-wrap:wrap}
+.range-btn{padding:.38rem .7rem;border:1px solid var(--border);border-radius:5px;background:var(--bg);font-size:.78rem;font-family:var(--font-mono);cursor:pointer;color:var(--ink-soft);transition:all .15s}
+.range-btn:hover,.range-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.show-btn{padding:.5rem 1.4rem;background:var(--accent);color:#fff;border:none;border-radius:6px;font-family:var(--font-sans);font-size:.87rem;font-weight:500;cursor:pointer;transition:background .2s}
+.show-btn:hover{background:var(--ink)}
+.chart-container{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow);min-height:400px}
+.chart-placeholder{display:flex;align-items:center;justify-content:center;height:360px;color:var(--ink-soft);font-size:.88rem;flex-direction:column;gap:.5rem}
+.chart-placeholder .icon{font-size:2.2rem;opacity:.25}
+.ts-footer{margin-top:.75rem;font-size:.76rem;color:var(--ink-soft);font-family:var(--font-mono);display:flex;align-items:center;gap:.6rem}
+.dl-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:.18rem .55rem;cursor:pointer;font-size:.76rem;font-family:var(--font-mono)}
+
+/* ── Deep dive ── */
+.dd-shell{padding:1.5rem 2rem;max-width:1200px;margin:0 auto}
+.deep-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.3rem}
+@media(max-width:900px){.deep-grid{grid-template-columns:1fr}}
+.deep-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow)}
+.deep-card h3{font-family:var(--font-serif);font-size:.92rem;font-weight:400;margin-bottom:.9rem;color:var(--ink);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+
+/* ── About page ── */
+.about-shell{padding:2rem;max-width:860px;margin:0 auto}
+.readme-hero{background:var(--ink);color:#fff;border-radius:var(--radius);padding:2.2rem 2rem;margin-bottom:1.8rem;position:relative;overflow:hidden}
+.readme-hero::after{content:'🇮🇳';position:absolute;right:1.8rem;top:50%;transform:translateY(-50%);font-size:5rem;opacity:.08}
+.readme-hero h2{font-family:var(--font-serif);font-size:1.7rem;font-weight:400;margin-bottom:.4rem}
+.readme-hero p{color:rgba(255,255,255,.65);font-size:.88rem;max-width:520px;line-height:1.7}
+.readme-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.6rem;margin-bottom:1.3rem;box-shadow:var(--shadow)}
+.readme-section h3{font-family:var(--font-serif);font-size:1.05rem;font-weight:400;margin-bottom:.9rem;padding-bottom:.5rem;border-bottom:2px solid var(--border);color:var(--ink)}
+.readme-section p{font-size:.86rem;color:var(--ink-soft);line-height:1.75;margin-bottom:.65rem}
+.readme-section p:last-child{margin-bottom:0}
+.source-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:.4rem}
+.source-table th{text-align:left;padding:.45rem .7rem;background:var(--bg);color:var(--ink-soft);font-weight:500;font-family:var(--font-mono);font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--border)}
+.source-table td{padding:.55rem .7rem;border-bottom:1px solid var(--border);color:var(--ink);vertical-align:top;line-height:1.45}
+.source-table tr:last-child td{border-bottom:none}
+.source-table tr:hover td{background:var(--bg-warm)}
+.freq-badge{font-family:var(--font-mono);font-size:.7rem;padding:.12rem .45rem;border-radius:4px;background:var(--bg);border:1px solid var(--border);white-space:nowrap}
+.caveat-list{list-style:none;display:flex;flex-direction:column;gap:.65rem}
+.caveat-list li{padding:.65rem .9rem;background:var(--bg-warm);border-radius:6px;border-left:3px solid var(--gold);font-size:.83rem;color:var(--ink-soft);line-height:1.6}
+.caveat-list li strong{color:var(--ink)}
+.readme-footer{text-align:center;padding:1.2rem;font-size:.78rem;color:var(--ink-soft);border-top:1px solid var(--border);margin-top:1.8rem}
+.readme-footer a{color:var(--accent);text-decoration:none}
+
+/* ── Loading ── */
+#loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:.9rem;transition:opacity .5s}
+#loading-overlay.hidden{opacity:0;pointer-events:none}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading-overlay p{font-family:var(--font-mono);font-size:.8rem;color:var(--ink-soft)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .freq-sidebar{display:none}
+  .snap-content{padding:1rem}
+  .ts-shell,.dd-shell,.about-shell{padding:1rem}
+  .ts-controls{flex-direction:column;align-items:stretch}
+  .ts-controls select{min-width:unset}
+  .scorecard-grid{grid-template-columns:repeat(2,1fr)}
+  .card-value{font-size:1.35rem}
+  .site-header h1{font-size:1rem}
+  .header-meta{display:none}
+  /* Mobile freq toggle as horizontal strip */
+  .freq-strip{display:flex!important}
+}
+.freq-strip{display:none;gap:.4rem;overflow-x:auto;padding:.6rem 1rem;background:var(--bg-card);border-bottom:1px solid var(--border)}
+.freq-strip-btn{padding:.35rem .8rem;border:1px solid var(--border);border-radius:20px;font-size:.78rem;font-family:var(--font-mono);background:var(--bg);cursor:pointer;white-space:nowrap}
+.freq-strip-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <p id="loading-msg">Loading data…</p>
+</div>
+
+<header class="site-header">
+  <h1><span>🇮🇳</span> Financial &amp; Macro Tracker</h1>
+  <div class="header-meta">
+    <span><span class="live-dot"></span> Auto-updated</span>
+    <span id="last-updated-header">—</span>
+  </div>
+</header>
+
+<nav class="nav-bar">
+  <button class="nav-tab active" onclick="showPage('snapshot',this)">📊 Snapshot</button>
+  <button class="nav-tab" onclick="showPage('timeseries',this)">📈 Time Series</button>
+  <button class="nav-tab" onclick="showPage('deepdive',this)">🔍 Deep Dive</button>
+  <button class="nav-tab" onclick="showPage('about',this)">ℹ️ About</button>
+</nav>
+
+<!-- ═══ SNAPSHOT PAGE ═══ -->
+<div class="page active" id="page-snapshot">
+
+  <!-- Mobile frequency strip -->
+  <div class="freq-strip">
+    <button class="freq-strip-btn active" onclick="switchFreq('daily',this)">📅 Daily</button>
+    <button class="freq-strip-btn" onclick="switchFreq('weekly',this)">📆 Weekly</button>
+    <button class="freq-strip-btn" onclick="switchFreq('monthly',this)">🗓 Monthly</button>
+    <button class="freq-strip-btn" onclick="switchFreq('quarterly',this)">📊 Quarterly</button>
+  </div>
+
+  <div class="snapshot-shell">
+
+    <!-- Sidebar -->
+    <aside class="freq-sidebar">
+      <h3>Frequency</h3>
+      <button class="freq-btn active" onclick="switchFreq('daily',this)">
+        Daily
+        <span class="freq-meta">Yahoo Finance · FRED · NSE</span>
+      </button>
+      <button class="freq-btn" onclick="switchFreq('weekly',this)">
+        Weekly
+        <span class="freq-meta">RBI WSS · FRED / EIA</span>
+      </button>
+      <button class="freq-btn" onclick="switchFreq('monthly',this)">
+        Monthly
+        <span class="freq-meta">FRED via OECD</span>
+      </button>
+      <button class="freq-btn" onclick="switchFreq('quarterly',this)">
+        Quarterly
+        <span class="freq-meta">FRED via IMF/BIS</span>
+      </button>
+    </aside>
+
+    <!-- Content panels -->
+    <div class="snap-content">
+
+      <!-- DAILY PANEL -->
+      <div class="freq-panel active" id="panel-daily">
+        <div class="data-banner">
+          <span>Latest trading day values. Arrows = change from previous trading day.</span>
+          <div class="source-pills">
+            <span class="source-pill pill-india">🇮🇳 India</span>
+            <span class="source-pill pill-usa">🇺🇸 USA</span>
+            <span class="source-pill pill-global">🌐 Global</span>
+          </div>
+        </div>
+
+        <div class="section-label">
+          <h2>Indian Markets</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">Yahoo Finance · NSE/BSE</span>
+        </div>
+        <div class="scorecard-grid" id="sc-indian-markets"></div>
+
+        <div class="section-label">
+          <h2>Currency &amp; Capital Flows</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">Yahoo Finance · NSE</span>
+        </div>
+        <div class="scorecard-grid" id="sc-currency"></div>
+
+        <div class="section-label">
+          <h2>US Commodities</h2><span class="country-badge badge-global">🌐 Global / USA</span>
+          <div class="section-line"></div><span class="section-sub">Yahoo Finance · Front-month futures</span>
+        </div>
+        <div class="scorecard-grid" id="sc-commodities"></div>
+
+        <div class="section-label">
+          <h2>US Markets &amp; Rates</h2><span class="country-badge badge-usa">🇺🇸 USA</span>
+          <div class="section-line"></div><span class="section-sub">Yahoo Finance · FRED · Fed/CBOE</span>
+        </div>
+        <div class="scorecard-grid" id="sc-us-markets"></div>
+
+        <div id="missing-daily" class="missing-note" style="display:none"></div>
+      </div>
+
+      <!-- WEEKLY PANEL -->
+      <div class="freq-panel" id="panel-weekly">
+        <div class="data-banner">
+          <span>Weekly values. RBI WSS published every Friday. FRED series updated Monday–Tuesday. Arrows = change from previous week.</span>
+          <div class="source-pills">
+            <span class="source-pill pill-india">🇮🇳 RBI WSS</span>
+            <span class="source-pill pill-usa">🇺🇸 FRED / EIA</span>
+          </div>
+        </div>
+
+        <div class="section-label">
+          <h2>RBI — Forex Reserves</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">RBI Weekly Statistical Supplement</span>
+        </div>
+        <div class="scorecard-grid" id="sc-rbi-forex"></div>
+
+        <div class="section-label">
+          <h2>RBI — Money &amp; Banking</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">RBI WSS · Fortnightly SCB data</span>
+        </div>
+        <div class="scorecard-grid" id="sc-rbi-money"></div>
+
+        <div class="section-label">
+          <h2>US Weekly Indicators</h2><span class="country-badge badge-usa">🇺🇸 USA</span>
+          <div class="section-line"></div><span class="section-sub">FRED · EIA survey · Fed H.4.1</span>
+        </div>
+        <div class="scorecard-grid" id="sc-us-weekly"></div>
+
+        <div id="missing-weekly" class="missing-note" style="display:none"></div>
+      </div>
+
+      <!-- MONTHLY PANEL -->
+      <div class="freq-panel" id="panel-monthly">
+        <div class="data-banner">
+          <span>Monthly values via FRED (OECD source). Typical lag: 6–14 weeks behind original release. Arrows = change from previous month.</span>
+          <div class="source-pills"><span class="source-pill pill-india">🇮🇳 India · FRED via OECD</span></div>
+        </div>
+
+        <div class="section-label">
+          <h2>India Macro — Monthly</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">FRED via OECD · Updated 16th of each month</span>
+        </div>
+        <div class="scorecard-grid" id="sc-india-monthly"></div>
+
+        <div id="missing-monthly" class="missing-note" style="display:none"></div>
+      </div>
+
+      <!-- QUARTERLY PANEL -->
+      <div class="freq-panel" id="panel-quarterly">
+        <div class="data-banner">
+          <span>Quarterly values via FRED (IMF/BIS source). Typical lag: 6–14 weeks. Arrows = change from previous quarter.</span>
+          <div class="source-pills"><span class="source-pill pill-india">🇮🇳 India · FRED via IMF/BIS</span></div>
+        </div>
+
+        <div class="section-label">
+          <h2>India Macro — Quarterly</h2><span class="country-badge badge-india">🇮🇳 India</span>
+          <div class="section-line"></div><span class="section-sub">FRED via IMF/BIS · Updated 16th of each month</span>
+        </div>
+        <div class="scorecard-grid" id="sc-india-quarterly"></div>
+
+        <div id="missing-quarterly" class="missing-note" style="display:none"></div>
+      </div>
+
+    </div><!-- /snap-content -->
+  </div><!-- /snapshot-shell -->
+</div><!-- /page-snapshot -->
+
+<!-- ═══ TIME SERIES PAGE ═══ -->
+<div class="page" id="page-timeseries">
+  <div class="ts-shell">
+    <div class="ts-controls">
+      <div>
+        <label>Indicator</label>
+        <select id="ts-indicator"></select>
+      </div>
+      <div>
+        <label>Range</label>
+        <div class="range-btns">
+          <button class="range-btn" onclick="setRange(30,this)">1M</button>
+          <button class="range-btn" onclick="setRange(90,this)">3M</button>
+          <button class="range-btn" onclick="setRange(180,this)">6M</button>
+          <button class="range-btn active" onclick="setRange(0,this,'ytd')">YTD</button>
+          <button class="range-btn" onclick="setRange(365,this)">1Y</button>
+          <button class="range-btn" onclick="setRange(0,this,'all')">All</button>
+        </div>
+      </div>
+      <div><label>&nbsp;</label><button class="show-btn" onclick="renderTimeSeries()">Show Chart</button></div>
+    </div>
+    <div class="chart-container">
+      <div class="chart-placeholder" id="ts-placeholder">
+        <span class="icon">📈</span>
+        <span>Select an indicator and click Show Chart</span>
+      </div>
+      <div id="ts-chart" style="display:none;height:400px"></div>
+    </div>
+    <div class="ts-footer">
+      <span>Values of -999 filtered out (market closed / not yet released).</span>
+      <button class="dl-btn" onclick="downloadCSV()">⬇ CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DEEP DIVE PAGE ═══ -->
+<div class="page" id="page-deepdive">
+  <div class="dd-shell">
+    <div class="deep-grid">
+      <div class="deep-card"><h3>🇮🇳 Forex Reserve Composition (Latest Week)</h3><div id="chart-forex-pie" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🇮🇳 Total Forex Reserves — Weekly Trend</h3><div id="chart-forex-trend" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🇮🇳 M3 Broad Money — Trend</h3><div id="chart-m3-trend" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🇮🇳 India G-Sec 10yr Yield — Monthly</h3><div id="chart-gsec" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🇺🇸🇮🇳 US Fed Funds Rate vs India G-Sec Yield</h3><div id="chart-rates" style="height:290px"></div></div>
+      <div class="deep-card"><h3>🌐 Gold (USD/oz) vs Brent Crude (USD/bbl)</h3><div id="chart-commodities" style="height:290px"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ABOUT PAGE ═══ -->
+<div class="page" id="page-about">
+  <div class="about-shell">
+    <div class="readme-hero">
+      <h2>Financial &amp; Macro Tracker</h2>
+      <p>An open-access, auto-updating dashboard covering Indian and global financial, monetary, and macroeconomic indicators. Built as a public good — free to use, free to share.</p>
+    </div>
+
+    <div class="readme-section">
+      <h3>About</h3>
+      <p>This dashboard reads from a Google Sheet that is auto-populated by Google Apps Script (Yahoo Finance + FRED data, runs daily) and Python scripts on GitHub Actions (NSE FII/DII flows, runs daily; RBI Weekly Statistical Supplement scraper, runs weekly). No manual intervention needed after setup.</p>
+      <p>Four pages: <strong>Snapshot</strong> (latest scorecards by frequency — toggle Daily/Weekly/Monthly/Quarterly in the sidebar), <strong>Time Series</strong> (any indicator over any range), <strong>Deep Dive</strong> (component charts), and this <strong>About</strong> page.</p>
+    </div>
+
+    <div class="readme-section">
+      <h3>Data Sources</h3>
+      <table class="source-table">
+        <thead><tr><th>Indicator Group</th><th>Country</th><th>Source</th><th>Frequency</th><th>Lag</th></tr></thead>
+        <tbody>
+          <tr><td>Sensex, Nifty 50</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance (^BSESN, ^NSEI)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>USD/INR (market spot rate)</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance (INR=X)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>FII / DII net cash flows</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>NSE India via nsefin Python library</td><td><span class="freq-badge">Daily</span></td><td>Same day after 3:30pm IST</td></tr>
+          <tr><td>Gold futures, Brent crude</td><td><span class="source-pill pill-global">🌐</span></td><td>Yahoo Finance (GC=F, BZ=F)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>US 10yr yield, Fed Funds Rate</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>Yahoo Finance (^TNX), FRED (DFF)</td><td><span class="freq-badge">Daily</span></td><td>Same day / 1-day lag</td></tr>
+          <tr><td>US retail gas price</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED (GASREGW) — EIA Monday survey</td><td><span class="freq-badge">Weekly</span></td><td>~1 day</td></tr>
+          <tr><td>US Fed gold stock</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED (WOFSRBGSA) — Fed H.4.1</td><td><span class="freq-badge">Weekly</span></td><td>~1 week</td></tr>
+          <tr><td>RBI Forex Reserves, M3, Bank Credit</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI Weekly Statistical Supplement (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>India CPI, G-Sec yield, Central Bank Rate</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Real GDP, Property Prices, Current Account</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via IMF/BIS</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="readme-section">
+      <h3>Caveats</h3>
+      <ul class="caveat-list">
+        <li><strong>Blank scorecards:</strong> A blank value means data was unavailable for that period (market holiday, exchange closed, or not yet released). The underlying data uses -999 as a sentinel which is filtered out before display.</li>
+        <li><strong>Gold &amp; Brent are futures, not spot:</strong> GC=F and BZ=F are front-month futures. Values captured at 6pm IST trigger time, not formal daily settlement.</li>
+        <li><strong>FRED India series lag (6–14 weeks):</strong> All India FRED series are sourced via OECD/IMF as intermediaries. For current CPI or repo rate refer to RBI/MoSPI directly.</li>
+        <li><strong>USD/INR is the market spot rate:</strong> The official RBI FBIL noon reference rate differs slightly and is not available via free API.</li>
+        <li><strong>US Fed Gold Stock is statutory value:</strong> WOFSRBGSA is valued at the frozen 1973 price of $42.22/oz — not market price. US gold stock (~8,133 tonnes) rarely changes.</li>
+        <li><strong>FII/DII data (nsefin) is provisional:</strong> NSE's internal API may change without notice. The most fragile part of the pipeline — monitor GitHub Actions logs if these columns stop updating.</li>
+      </ul>
+    </div>
+
+    <div class="readme-section">
+      <h3>Update Schedule</h3>
+      <table class="source-table">
+        <thead><tr><th>Tab</th><th>Trigger</th><th>Time (IST)</th></tr></thead>
+        <tbody>
+          <tr><td>DailyData — Yahoo Finance + FRED</td><td>Google Apps Script</td><td>6:00pm weekdays</td></tr>
+          <tr><td>DailyData — FII/DII</td><td>GitHub Actions</td><td>7:30pm weekdays</td></tr>
+          <tr><td>WeeklyData — FRED series</td><td>Google Apps Script</td><td>9:00am Mondays</td></tr>
+          <tr><td>WeeklyData — RBI WSS</td><td>GitHub Actions</td><td>9:00am Saturdays</td></tr>
+          <tr><td>MonthlyData + QuarterlyData</td><td>Google Apps Script</td><td>9:00am on 16th of each month</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="readme-footer">
+      Data: Yahoo Finance · FRED (St. Louis Fed) · RBI · NSE India · EIA · OECD · IMF · BIS. Not financial advice. &nbsp;·&nbsp;
+      <a href="https://github.com/sravanpallapothu" target="_blank">GitHub</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONFIGURATION
+// Replace with your actual Google Sheet tab GIDs.
+// Find each GID from the URL when you click on a tab in Google Sheets.
+// Sheet ID: 1hqzZzeVsyYinxSQ_pjinKBhnKC7XR76X3XHWVo_DgaU
+// ═══════════════════════════════════════════════════════════════
+const SHEET_ID = '1hqzZzeVsyYinxSQ_pjinKBhnKC7XR76X3XHWVo_DgaU';
+const GID = {
+  daily:     '1210776088',
+  weekly:    '562712552',
+  monthly:   '1304710388',
+  quarterly: '1915292222',
+};
+function csvUrl(key) {
+  const gid = GID[key];
+  if (!gid) return null;
+  // Use pub URL — works when sheet is published to web via File → Share → Publish to web
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
+}
+
+// ── Global state ──────────────────────────────────────────────
+const DATA = { daily:[], weekly:[], monthly:[], quarterly:[], rbi_weekly:[] };
+let tsRange = { days:0, mode:'ytd' };
+let currentTsData = null;
+let missingLog = { daily:[], weekly:[], monthly:[], quarterly:[] };
+
+// ── Scorecard definitions ─────────────────────────────────────
+const SCORECARD_DEFS = {
+  'sc-indian-markets': [
+    { label:'Sensex',   col:'Sensex',   src:'daily', unit:'pts',    country:'india',  prec:0 },
+    { label:'Nifty 50', col:'Nifty 50', src:'daily', unit:'pts',    country:'india',  prec:0 },
+  ],
+  'sc-currency': [
+    { label:'USD / INR',      col:'USD/INR',                  src:'daily', unit:'₹ per $',  country:'india',  prec:2 },
+    { label:'FII Net Cash',   col:'FII Net Cash (INR Cr)',    src:'daily', unit:'₹ Cr',      country:'india',  prec:0 },
+    { label:'DII Net Cash',   col:'DII Net Cash (INR Cr)',    src:'daily', unit:'₹ Cr',      country:'india',  prec:0 },
+  ],
+  'sc-commodities': [
+    { label:'Gold',       col:'Gold (USD/oz)',          src:'daily',  unit:'USD/oz',   country:'global', prec:2 },
+    { label:'Brent Crude',col:'Brent Crude (USD/bbl)',  src:'daily',  unit:'USD/bbl',  country:'global', prec:2 },
+    { label:'US Gas',     col:'US Regular Gas Price (USD/gallon)', src:'weekly', unit:'USD/gal', country:'usa', prec:3 },
+  ],
+  'sc-us-markets': [
+    { label:'US 10yr Yield',     col:'US 10yr Yield (%)',                         src:'daily',  unit:'% p.a.',  country:'usa', prec:3 },
+    { label:'US Fed Funds Rate', col:'US Fed Funds Rate (%)',                     src:'daily',  unit:'% p.a.',  country:'usa', prec:3 },
+    { label:'US Fed Gold Stock', col:'US Fed Gold Stock (USD Mn, statutory price)',src:'weekly', unit:'USD Mn',  country:'usa', prec:0 },
+  ],
+  'sc-rbi-forex': [
+    { label:'Total Forex Reserves', col:'Total Forex Reserves (USD Bn)',    src:'weekly', unit:'USD Bn', country:'india', prec:3 },
+    { label:'FCA',                  col:'Foreign Currency Assets (USD Bn)', src:'weekly', unit:'USD Bn', country:'india', prec:3 },
+    { label:'Gold Reserves',        col:'Gold Reserves (USD Bn)',           src:'weekly', unit:'USD Bn', country:'india', prec:3 },
+    { label:'SDRs',                 col:'SDRs (USD Bn)',                    src:'weekly', unit:'USD Bn', country:'india', prec:3 },
+    { label:'IMF Reserve Pos.',     col:'IMF Reserve Position (USD Bn)',    src:'weekly', unit:'USD Bn', country:'india', prec:3 },
+  ],
+  'sc-rbi-money': [
+    { label:'M3 Broad Money',  col:'M3 Broad Money (INR Bn)',   src:'weekly', unit:'₹ Bn', country:'india', prec:0 },
+    { label:'Bank Credit SCB', col:'Bank Credit - SCB (INR Bn)',src:'weekly', unit:'₹ Bn', country:'india', prec:0 },
+  ],
+  'sc-us-weekly': [
+    { label:'US Gas Price',      col:'US Regular Gas Price (USD/gallon)',             src:'weekly', unit:'USD/gal', country:'usa', prec:3 },
+    { label:'US Fed Gold Stock', col:'US Fed Gold Stock (USD Mn, statutory price)',  src:'weekly', unit:'USD Mn',  country:'usa', prec:0 },
+  ],
+  'sc-india-monthly': [
+    { label:'India CPI',             col:'India CPI (Index, 2015=100)', src:'monthly', unit:'Index',  country:'india', prec:2 },
+    { label:'Central Bank Rate',     col:'India Central Bank Rate (%)', src:'monthly', unit:'% p.a.', country:'india', prec:3 },
+    { label:'India G-Sec 10yr',      col:'India 10yr G-Sec Yield (%)', src:'monthly', unit:'% p.a.', country:'india', prec:3 },
+  ],
+  'sc-india-quarterly': [
+    { label:'India Real GDP',         col:'India Real GDP (Mn INR)',                          src:'quarterly', unit:'Mn ₹',  country:'india', prec:0 },
+    { label:'Property Price Index',   col:'India Real Property Price (Index, 2010=100)',      src:'quarterly', unit:'Index', country:'india', prec:2 },
+    { label:'Current Account',        col:'India Current Account Balance (USD Mn, SA)',       src:'quarterly', unit:'USD Mn',country:'india', prec:0 },
+    { label:'Financial Account',      col:'India Financial Account Net (USD Mn)',             src:'quarterly', unit:'USD Mn',country:'india', prec:0 },
+  ],
+};
+
+// ── CSV Parser — handles quoted fields, note rows, $ prefix ──
+function parseCSV(text) {
+  const raw = text.trim().split('\n');
+  if (raw.length < 2) return [];
+
+  // Skip note rows at the top (rows that don't look like headers or data)
+  // Headers are identified by finding the row with "Date" or "Period"
+  let headerIdx = 0;
+  for (let i = 0; i < Math.min(5, raw.length); i++) {
+    if (/^"?(Date|Period)/i.test(raw[i].trim())) { headerIdx = i; break; }
+  }
+
+  const headers = splitCSVRow(raw[headerIdx]).map(h => h.trim());
+  const rows = [];
+  for (let i = headerIdx + 1; i < raw.length; i++) {
+    const cells = splitCSVRow(raw[i]);
+    if (!cells.length || !cells[0]) continue;
+    const obj = {};
+    headers.forEach((h, j) => {
+      let v = (cells[j] || '').trim();
+      // Strip $ prefix and commas from numeric values
+      v = v.replace(/^\$/, '').replace(/,/g, '');
+      obj[h] = v;
+    });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function splitCSVRow(line) {
+  const cols = []; let cur = '', inQ = false;
+  for (const c of line) {
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
+    else cur += c;
+  }
+  cols.push(cur);
+  return cols;
+}
+
+// ── Fetch all data ────────────────────────────────────────────
+async function loadAllData() {
+  const keys = ['daily','weekly','monthly','quarterly','rbi_weekly'];
+  let loaded = 0;
+  await Promise.all(keys.map(async key => {
+    const url = csvUrl(key);
+    if (!url) { DATA[key] = []; return; }
+    try {
+      document.getElementById('loading-msg').textContent = `Loading ${key} data…`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const text = await resp.text();
+      DATA[key] = parseCSV(text);
+      loaded++;
+    } catch(e) {
+      console.warn(`Failed to load ${key}:`, e);
+      DATA[key] = [];
+    }
+  }));
+  return loaded;
+}
+
+// ── Get latest non-missing value ──────────────────────────────
+const MISSING_VAL = -999;
+function isMissing(v) { return isNaN(v) || v === MISSING_VAL; }
+
+function getLatest(rows, col) {
+  const dateKey = rows[0] && rows[0]['Date'] ? 'Date' : 'Period';
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const raw = (rows[i][col] || '').toString().replace(/,/g,'');
+    const v = parseFloat(raw);
+    if (!isMissing(v)) return { value:v, date:rows[i][dateKey], idx:i };
+  }
+  return null;
+}
+
+function getPrev(rows, col, fromIdx) {
+  const dateKey = rows[0] && rows[0]['Date'] ? 'Date' : 'Period';
+  for (let i = fromIdx - 1; i >= 0; i--) {
+    const raw = (rows[i][col] || '').toString().replace(/,/g,'');
+    const v = parseFloat(raw);
+    if (!isMissing(v)) return { value:v, date:rows[i][dateKey] };
+  }
+  return null;
+}
+
+// ── Format ────────────────────────────────────────────────────
+function fmt(v, prec) {
+  if (v === null || v === undefined) return '—';
+  const abs = Math.abs(v);
+  if (abs >= 1e7)  return (v/1e7).toFixed(2) + 'Cr';
+  if (abs >= 1e5)  return (v/1e5).toFixed(2) + 'L';
+  if (abs >= 1e3)  return v.toLocaleString('en-IN',{maximumFractionDigits:prec});
+  return v.toFixed(prec);
+}
+
+// ── Render scorecards ─────────────────────────────────────────
+function renderScorecards() {
+  // Track which indicators had no data at all
+  const panelMissing = { daily:[], weekly:[], monthly:[], quarterly:[] };
+
+  Object.entries(SCORECARD_DEFS).forEach(([gridId, defs]) => {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    defs.forEach(def => {
+      const rows   = DATA[def.src];
+      const latest = rows.length ? getLatest(rows, def.col) : null;
+      const prev   = latest ? getPrev(rows, def.col, latest.idx) : null;
+
+      // If no data at all for this indicator, skip the card
+      // and log it for the footnote
+      if (!latest) {
+        // Determine which panel frequency this belongs to
+        const freq = def.src;
+        panelMissing[freq].push(def.label);
+        return; // don't render a card
+      }
+
+      let changeHTML = '';
+      let changeClass = 'flat';
+      if (prev) {
+        const diff = latest.value - prev.value;
+        const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+        changeClass = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+        const dispDiff = Math.abs(diff) < 0.001
+          ? diff.toFixed(4)
+          : Math.abs(diff) >= 100
+            ? Math.abs(diff).toFixed(0)
+            : Math.abs(diff).toFixed(def.prec);
+        const sign = diff > 0 ? '+' : diff < 0 ? '−' : '';
+        changeHTML = `<span class="card-change ${changeClass}">${arrow} ${sign}${dispDiff}</span>`;
+      }
+
+      const dispVal  = fmt(latest.value, def.prec);
+      const dispDate = (latest.date || '').replace(/^\d{4}-/,'');
+
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="card ${def.country}">
+          <div class="card-label">${def.label}</div>
+          <div class="card-value">${dispVal}</div>
+          <div class="card-meta">
+            ${changeHTML}
+            <span class="card-unit">${def.unit}</span>
+            <span class="card-period">${dispDate}</span>
+          </div>
+        </div>
+      `);
+    });
+  });
+
+  // Render missing footnotes per panel
+  ['daily','weekly','monthly','quarterly'].forEach(freq => {
+    const el = document.getElementById('missing-' + freq);
+    if (!el) return;
+    const missing = panelMissing[freq];
+    if (missing.length) {
+      el.style.display = 'block';
+      el.innerHTML = `<strong>Not yet available:</strong> ${missing.join(', ')} — data not yet in sheet or all values are -999.`;
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+// ── Populate time series dropdown ─────────────────────────────
+function populateTsDropdown() {
+  const sel = document.getElementById('ts-indicator');
+  sel.innerHTML = '';
+  const groups = { daily:'📅 Daily', weekly:'📆 Weekly (FRED)', rbi_weekly:'📆 Weekly (RBI WSS)', monthly:'🗓 Monthly', quarterly:'📊 Quarterly' };
+  Object.entries(groups).forEach(([src, label]) => {
+    const rows = DATA[src];
+    if (!rows.length) return;
+    const dateKey = rows[0]['Date'] ? 'Date' : 'Period';
+    const cols = Object.keys(rows[0]).filter(k => k !== dateKey);
+    if (!cols.length) return;
+    const og = document.createElement('optgroup');
+    og.label = label;
+    cols.forEach(col => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({col, src});
+      opt.textContent = col;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+}
+
+// ── Time series chart ─────────────────────────────────────────
+function renderTimeSeries() {
+  const sel = document.getElementById('ts-indicator');
+  if (!sel.value) return;
+  const {col, src} = JSON.parse(sel.value);
+  const rows = DATA[src];
+  if (!rows.length) return;
+
+  const dateKey = rows[0]['Date'] ? 'Date' : 'Period';
+  const now = new Date();
+
+  let filtered = rows.filter(r => {
+    const raw = (r[col]||'').toString().replace(/,/g,'');
+    const v = parseFloat(raw);
+    return !isMissing(v);
+  });
+
+  if (tsRange.mode === 'ytd') {
+    const jan1 = new Date(now.getFullYear(),0,1);
+    filtered = filtered.filter(r => new Date(r[dateKey]) >= jan1);
+  } else if (tsRange.mode === 'days' && tsRange.days > 0) {
+    const cut = new Date(now); cut.setDate(cut.getDate() - tsRange.days);
+    filtered = filtered.filter(r => new Date(r[dateKey]) >= cut);
+  }
+
+  const xs = filtered.map(r => r[dateKey]);
+  const ys = filtered.map(r => parseFloat((r[col]||'').toString().replace(/,/g,'')));
+  currentTsData = {xs, ys, col, src};
+
+  const colours = {daily:'#c84b31', weekly:'#2d6a4f', monthly:'#1a4480', quarterly:'#5a4a8a'};
+
+  Plotly.newPlot('ts-chart', [{
+    x:xs, y:ys, type:'scatter', mode:'lines', name:col,
+    line:{color: colours[src]||'#c84b31', width:2},
+    hovertemplate:'<b>%{x}</b><br>%{y}<extra></extra>',
+    connectgaps: true,
+  }], {
+    margin:{t:30,r:20,b:40,l:65},
+    paper_bgcolor:'transparent', plot_bgcolor:'transparent',
+    font:{family:'DM Sans, sans-serif', size:12, color:'#4a5568'},
+    xaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false},
+    yaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false,
+           title:{text:col.length>30?col.slice(0,30)+'…':col, font:{size:11}}},
+    title:{text:col, font:{size:14, family:'DM Serif Display, serif'}, x:0.02},
+    hovermode:'x unified',
+    hoverlabel:{bgcolor:'#1a1a2e', font:{color:'#fff', family:'DM Mono, monospace', size:12}},
+  }, {responsive:true, displayModeBar:false});
+
+  document.getElementById('ts-placeholder').style.display = 'none';
+  document.getElementById('ts-chart').style.display = 'block';
+}
+
+function setRange(days, btn, mode) {
+  tsRange = {days, mode: mode || (days>0 ? 'days' : 'all')};
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (document.getElementById('ts-chart').style.display !== 'none') renderTimeSeries();
+}
+
+function downloadCSV() {
+  if (!currentTsData) return;
+  const {xs, ys, col} = currentTsData;
+  const lines = ['Date,' + col, ...xs.map((x,i) => `${x},${ys[i]}`)];
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = col.replace(/[^a-z0-9]/gi,'_') + '.csv';
+  a.click();
+}
+
+// ── Deep dive charts ──────────────────────────────────────────
+function renderDeepDive() {
+  const cfg = {responsive:true, displayModeBar:false};
+  const lay = {
+    margin:{t:20,r:20,b:40,l:60},
+    paper_bgcolor:'transparent', plot_bgcolor:'transparent',
+    font:{family:'DM Sans, sans-serif', size:11, color:'#4a5568'},
+    xaxis:{showgrid:true, gridcolor:'#e2ddd6'},
+    yaxis:{showgrid:true, gridcolor:'#e2ddd6'},
+  };
+
+  const W = DATA.weekly;
+  const D = DATA.daily;
+  const M = DATA.monthly;
+
+  function colVals(rows, col) {
+    const dk = rows[0] && rows[0]['Date'] ? 'Date' : 'Period';
+    const xs=[], ys=[];
+    rows.forEach(r => {
+      const v = parseFloat((r[col]||'').toString().replace(/,/g,''));
+      if (!isMissing(v)) { xs.push(r[dk]); ys.push(v); }
+    });
+    return {xs, ys};
+  }
+
+  // 1. Forex pie
+  if (W.length) {
+    const fca  = getLatest(W,'Foreign Currency Assets (USD Bn)');
+    const gold = getLatest(W,'Gold Reserves (USD Bn)');
+    const sdr  = getLatest(W,'SDRs (USD Bn)');
+    const imf  = getLatest(W,'IMF Reserve Position (USD Bn)');
+    const vals = [fca,gold,sdr,imf].map(x => x?x.value:0);
+    if (vals.some(v=>v>0)) {
+      Plotly.newPlot('chart-forex-pie',[{
+        type:'pie',
+        labels:['FCA','Gold','SDRs','IMF Position'],
+        values:vals,
+        marker:{colors:['#1a4480','#d4a853','#2d6a4f','#c84b31']},
+        textinfo:'label+percent',
+        hovertemplate:'<b>%{label}</b><br>$%{value:.2f} Bn<extra></extra>',
+      }],{...lay,margin:{t:10,r:10,b:10,l:10}},cfg);
+    }
+
+    // 2. Forex trend
+    const fxT = colVals(W,'Total Forex Reserves (USD Bn)');
+    const fxG = colVals(W,'Gold Reserves (USD Bn)');
+    Plotly.newPlot('chart-forex-trend',[
+      {x:fxT.xs,y:fxT.ys,name:'Total Reserves',type:'scatter',mode:'lines',line:{color:'#1a4480',width:2},connectgaps:true},
+      {x:fxG.xs,y:fxG.ys,name:'Gold',type:'scatter',mode:'lines',line:{color:'#d4a853',width:2},connectgaps:true,yaxis:'y2'},
+    ],{...lay,yaxis:{...lay.yaxis,title:'Total (USD Bn)'},yaxis2:{overlaying:'y',side:'right',title:'Gold (USD Bn)',showgrid:false}},cfg);
+
+    // 3. M3 trend
+    const m3 = colVals(W,'M3 Broad Money (INR Bn)');
+    Plotly.newPlot('chart-m3-trend',[
+      {x:m3.xs,y:m3.ys,name:'M3',type:'scatter',mode:'lines',line:{color:'#c84b31',width:2},fill:'tozeroy',fillcolor:'rgba(200,75,49,0.06)',connectgaps:true},
+    ],{...lay,yaxis:{...lay.yaxis,title:'INR Bn'}},cfg);
+  }
+
+  // 4. G-Sec monthly
+  if (M.length) {
+    const gsec = colVals(M,'India 10yr G-Sec Yield (%)');
+    Plotly.newPlot('chart-gsec',[
+      {x:gsec.xs,y:gsec.ys,name:'India 10yr G-Sec',type:'scatter',mode:'lines+markers',line:{color:'#c84b31',width:2},marker:{size:5},connectgaps:true},
+    ],{...lay,yaxis:{...lay.yaxis,title:'% p.a.'}},cfg);
+
+    // 5. Rates comparison
+    const ff  = colVals(D,'US Fed Funds Rate (%)');
+    const ust = colVals(D,'US 10yr Yield (%)');
+    Plotly.newPlot('chart-rates',[
+      {x:ff.xs,  y:ff.ys,  name:'🇺🇸 Fed Funds',   type:'scatter',mode:'lines',line:{color:'#1a4480',width:2},connectgaps:true},
+      {x:ust.xs, y:ust.ys, name:'🇺🇸 US 10yr',     type:'scatter',mode:'lines',line:{color:'#1a4480',dash:'dot',width:1.5},connectgaps:true},
+      {x:gsec.xs,y:gsec.ys,name:'🇮🇳 India G-Sec', type:'scatter',mode:'lines+markers',line:{color:'#c84b31',width:2},marker:{size:4},connectgaps:true},
+    ],{...lay,yaxis:{...lay.yaxis,title:'% p.a.'}},cfg);
+  }
+
+  // 6. Commodities
+  if (D.length) {
+    const gd = colVals(D,'Gold (USD/oz)');
+    const br = colVals(D,'Brent Crude (USD/bbl)');
+    Plotly.newPlot('chart-commodities',[
+      {x:gd.xs,y:gd.ys,name:'Gold USD/oz', type:'scatter',mode:'lines',line:{color:'#d4a853',width:2},connectgaps:true},
+      {x:br.xs,y:br.ys,name:'Brent USD/bbl',type:'scatter',mode:'lines',line:{color:'#2d3561',width:2},connectgaps:true,yaxis:'y2'},
+    ],{...lay,yaxis:{...lay.yaxis,title:'Gold USD/oz'},yaxis2:{overlaying:'y',side:'right',title:'Brent USD/bbl',showgrid:false}},cfg);
+  }
+}
+
+// ── Page / frequency navigation ───────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'deepdive') renderDeepDive();
+}
+
+function switchFreq(freq, btn) {
+  document.querySelectorAll('.freq-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('panel-' + freq).style.display = 'block';
+  document.querySelectorAll('.freq-btn, .freq-strip-btn').forEach(b => b.classList.remove('active'));
+  // Mark all buttons with matching freq active
+  document.querySelectorAll('.freq-btn, .freq-strip-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(freq) || (btn && b === btn)) b.classList.add('active');
+  });
+}
+
+// ── Update header ─────────────────────────────────────────────
+function updateHeader() {
+  const d = DATA.daily;
+  if (!d.length) return;
+  for (let i = d.length-1; i >= 0; i--) {
+    const date = d[i]['Date'];
+    if (date && date !== '6/7/2026 18:14:16') { // skip timestamp rows
+      document.getElementById('last-updated-header').textContent = 'Data to ' + date;
+      return;
+    }
+  }
+}
+
+// ── Initialise ────────────────────────────────────────────────
+(async () => {
+  const loaded = await loadAllData();
+
+  renderScorecards();
+  populateTsDropdown();
+  updateHeader();
+
+  // Initialise panel visibility
+  document.querySelectorAll('.freq-panel').forEach((p,i) => {
+    p.style.display = i === 0 ? 'block' : 'none';
+  });
+
+  const overlay = document.getElementById('loading-overlay');
+  overlay.classList.add('hidden');
+  setTimeout(() => overlay.remove(), 600);
+
+  if (loaded === 0) {
+    document.getElementById('last-updated-header').textContent = 'Configure GIDs to load live data';
+  }
+})();
+</script>
+</body>
+</html>

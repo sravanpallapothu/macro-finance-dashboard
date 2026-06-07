@@ -1,0 +1,10 @@
+Source: FRED (Federal Reserve Economic Data) via IMF/BIS. Frequency: quarterly. ~6-14 week lag. Missing values shown as -999. Data from 2024-01-01.
+Period,India Real GDP (Mn INR),"India Real Property Price (Index, 2010=100)","India Current Account Balance (USD Mn, SA)",India Financial Account Net (USD Mn)
+01-Jan-2024,"76,084,480",160.04,-999,-999
+01-Apr-2024,"70,545,788",161.34,-999,-999
+01-Jul-2024,"69,538,700",158.25,-999,-999
+01-Oct-2024,"78,405,733",157.88,-999,-999
+01-Jan-2025,"81,395,975",160.23,-999,-999
+01-Apr-2025,"75,288,869",162.52,-999,-999
+01-Jul-2025,"75,386,581",161.14,-999,-999
+01-Oct-2025,"84,535,555",162.61,-999,-999
