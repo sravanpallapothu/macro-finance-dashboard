@@ -466,8 +466,9 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
 // This approach is instant (same-origin, no CORS) — same as NFHS dashboard.
 // ═══════════════════════════════════════════════════════════════
 function csvUrl(key) {
-  // rbi_weekly maps to data/rbi_weekly.csv
-  return `data/${key}.csv`;
+  // Cache-busting: append timestamp so browser always fetches fresh CSV
+  const ts = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  return `data/${key}.csv?v=${ts}`;
 }
 // No proxy needed — local files load instantly
 function csvUrlProxy(key) {
