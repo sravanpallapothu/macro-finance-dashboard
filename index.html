@@ -606,17 +606,25 @@ function mergeWeeklyRows(rows) {
 
 // ── Fetch with CORS proxy fallback ────────────────────────────
 async function fetchCSV(key) {
-  const urls = [csvUrl(key), csvUrlProxy(key)];
+  // Try data/ subfolder first, then root, then CORS proxy
+  const urls = [
+    `data/${key}.csv`,
+    `${key}.csv`,
+    csvUrlProxy(key),
+  ];
   for (const url of urls) {
     if (!url) continue;
     try {
-      const resp = await fetch(url, { mode: 'cors' });
+      const resp = await fetch(url);
       if (resp.ok) {
         const text = await resp.text();
-        if (text && text.length > 50) return text;
+        if (text && text.length > 50) {
+          console.log(`${key}: loaded from ${url}`);
+          return text;
+        }
       }
     } catch(e) {
-      console.warn(`Fetch failed for ${key} (${url}):`, e.message);
+      console.warn(`${key}: failed from ${url}:`, e.message);
     }
   }
   return null;
@@ -626,7 +634,8 @@ async function fetchCSV(key) {
 async function loadAllData() {
   const keys = ['daily','weekly','monthly','quarterly','rbi_weekly'];
   let loaded = 0;
-  await Promise.all(keys.map(async key => {
+  // Load sequentially so loading message is meaningful
+  for (const key of keys) {
     document.getElementById('loading-msg').textContent = `Loading ${key} data…`;
     const text = await fetchCSV(key);
     if (text) {
@@ -637,7 +646,7 @@ async function loadAllData() {
       console.warn(`${key}: failed to load`);
       DATA[key] = [];
     }
-  }));
+  }
   return loaded;
 }
 
@@ -960,7 +969,12 @@ function updateHeader() {
   overlay.classList.add('hidden');
   setTimeout(() => overlay.remove(), 600);
 
-  console.log('Loaded tabs:', Object.entries(DATA).map(([k,v]) => `${k}:${v.length}`).join(', '));
+  const summary = Object.entries(DATA).map(([k,v]) => `${k}:${v.length}`).join(', ');
+  console.log('Loaded tabs:', summary);
+  document.getElementById('last-updated-header').textContent =
+    loaded === 0 ? 'Check browser console for errors' :
+    loaded < 5 ? `${loaded}/5 tabs loaded` :
+    document.getElementById('last-updated-header').textContent;
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
