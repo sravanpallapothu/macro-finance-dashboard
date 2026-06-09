@@ -580,13 +580,22 @@ function parseCSV(text, tabName) {
     // Skip timestamp rows (e.g. "6/7/2026 18:14:16")
     if (/\d+\/\d+\/\d{4}\s+\d+:\d+/.test(dateRaw)) continue;
 
-    // Skip M/D/YYYY rows (Apps Script sometimes writes dates this way)
-    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateRaw)) continue;
+    // Normalise M/D/YYYY or M/D/YYYY HH:MM:SS to YYYY-MM-DD
+    let dateNorm = dateRaw;
+    const mdyFull = dateRaw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (mdyFull) {
+      const mm = mdyFull[1].padStart(2,'0');
+      const dd = mdyFull[2].padStart(2,'0');
+      dateNorm = `${mdyFull[3]}-${mm}-${dd}`;
+    }
 
     const obj = {};
     headers.forEach((h, j) => {
       obj[h] = cleanVal(cells[j] || '');
     });
+    // Use normalised date
+    obj['Date'] = dateNorm;
+    obj['Period'] = dateNorm;
     // Normalise date key
     if (obj['Date'] !== undefined) obj['Date'] = dateRaw;
     else if (obj['Period'] !== undefined) obj['Period'] = dateRaw;
@@ -950,10 +959,7 @@ function updateHeader() {
   const d = DATA.daily;
   for (let i = d.length - 1; i >= 0; i--) {
     const date = d[i]['Date'];
-    // Skip timestamp rows and M/D/YYYY format rows
-    if (date &&
-        !/\d+\/\d+\/\d{4}\s/.test(date) &&
-        !/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(date)) {
+    if (date) {
       document.getElementById('last-updated-header').textContent = 'Data to ' + date;
       return;
     }
