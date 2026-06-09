@@ -1,4 +1,4 @@
-Source: FRED (Federal Reserve Economic Data) via OECD/IMF/BIS. Frequency: monthly. ~6-14 week lag behind original release. Missing values shown as -999. Data from 2024-01-01.
+Source: FRED (Federal Reserve Economic Data) via OECD/IMF/BIS. Frequency: monthly. ~6-14 week lag behind original release. Missing values shown as -999. Data from 2024-01-01.,,,
 Period,"India CPI (Index, 2015=100)",India Central Bank Rate (%),India 10yr G-Sec Yield (%)
 01-Jan-2024,153.03,-999.000,7.203
 01-Feb-2024,153.37,-999.000,7.090
