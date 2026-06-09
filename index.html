@@ -593,9 +593,10 @@ function parseCSV(text, tabName) {
     headers.forEach((h, j) => {
       obj[h] = cleanVal(cells[j] || '');
     });
-    // Use normalised date
-    obj['Date'] = dateNorm;
-    obj['Period'] = dateNorm;
+    // Overwrite date fields with normalised YYYY-MM-DD value
+    // (must come AFTER forEach which sets raw value from cells[0])
+    if (obj['Date']  !== undefined) obj['Date']   = dateNorm;
+    if (obj['Period'] !== undefined) obj['Period'] = dateNorm;
     // Normalise date key
     if (obj['Date'] !== undefined) obj['Date'] = dateRaw;
     else if (obj['Period'] !== undefined) obj['Period'] = dateRaw;
