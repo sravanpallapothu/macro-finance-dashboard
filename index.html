@@ -898,7 +898,7 @@ function renderTimeSeries() {
   // Build one filtered seriesList item per selector
   function buildSeries(selId, colourIdx) {
     const sel = document.getElementById(selId);
-    if (!sel || !sel.value || sel.value === '') return null;
+    if (!sel || sel.selectedIndex === 0 || !sel.value || sel.value === '') return null;
     let parsed;
     try { parsed = JSON.parse(sel.value); } catch(e) { return null; }
     const {col, src} = parsed;
@@ -939,10 +939,12 @@ function renderTimeSeries() {
     font:{family:'DM Sans, sans-serif', size:12, color:'#4a5568'},
     xaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false,
            type:'date', tickformat:'%d %b %Y'},
-    yaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false,
+    yaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:true,
+           rangemode:'tozero',
            title:{text:seriesList[0].col.length>30?seriesList[0].col.slice(0,30)+'…':seriesList[0].col, font:{size:10}},
            color: seriesList[0].colour},
-    yaxis2: hasTwo ? {overlaying:'y', side:'right', showgrid:false,
+    yaxis2: hasTwo ? {overlaying:'y', side:'right', showgrid:false, zeroline:true,
+           rangemode:'tozero',
            title:{text:seriesList[1].col.length>30?seriesList[1].col.slice(0,30)+'…':seriesList[1].col, font:{size:10}},
            color: seriesList[1].colour} : undefined,
     title:{text: seriesList.map(s=>s.col).join(' vs '), font:{size:13, family:'DM Serif Display, serif'}, x:0.02},
