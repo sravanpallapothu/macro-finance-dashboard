@@ -418,18 +418,33 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
     <div class="readme-section">
       <h3>Data Sources</h3>
       <table class="source-table">
-        <thead><tr><th>Indicator Group</th><th>Country</th><th>Source</th><th>Frequency</th><th>Lag</th></tr></thead>
+        <thead><tr><th>Indicator</th><th>Code</th><th>Country</th><th>Source</th><th>Frequency</th><th>Lag</th></tr></thead>
         <tbody>
-          <tr><td>Sensex, Nifty 50</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance (^BSESN, ^NSEI)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
-          <tr><td>USD/INR (market spot rate)</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance (INR=X)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
-          <tr><td>FII / DII net cash flows</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>NSE India via nsefin Python library</td><td><span class="freq-badge">Daily</span></td><td>Same day after 3:30pm IST</td></tr>
-          <tr><td>Gold futures, Brent crude</td><td><span class="source-pill pill-global">🌐</span></td><td>Yahoo Finance (GC=F, BZ=F)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
-          <tr><td>US 10yr yield, Fed Funds Rate</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>Yahoo Finance (^TNX), FRED (DFF)</td><td><span class="freq-badge">Daily</span></td><td>Same day / 1-day lag</td></tr>
-          <tr><td>US retail gas price</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED (GASREGW) — EIA Monday survey</td><td><span class="freq-badge">Weekly</span></td><td>~1 day</td></tr>
-          <tr><td>US Fed gold stock</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED (WOFSRBGSA) — Fed H.4.1</td><td><span class="freq-badge">Weekly</span></td><td>~1 week</td></tr>
-          <tr><td>RBI Forex Reserves, M3, Bank Credit</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI Weekly Statistical Supplement (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
-          <tr><td>India CPI, G-Sec yield, Central Bank Rate</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
-          <tr><td>India Real GDP, Property Prices, Current Account</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via IMF/BIS</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>Sensex</td><td><code>^BSESN</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>Nifty 50</td><td><code>^NSEI</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>USD/INR (market spot rate)</td><td><code>INR=X</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>FII Net Cash (INR Cr)</td><td><code>nsefin</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>NSE India via nsefin</td><td><span class="freq-badge">Daily</span></td><td>After 3:30pm IST</td></tr>
+          <tr><td>DII Net Cash (INR Cr)</td><td><code>nsefin</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>NSE India via nsefin</td><td><span class="freq-badge">Daily</span></td><td>After 3:30pm IST</td></tr>
+          <tr><td>US Gold Price (USD/oz)</td><td><code>GC=F</code></td><td><span class="source-pill pill-global">🌐</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>Brent Crude (USD/bbl)</td><td><code>BZ=F</code></td><td><span class="source-pill pill-global">🌐</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>US 10yr Yield (%)</td><td><code>^TNX</code></td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>US Fed Funds Rate (%)</td><td><code>DFF</code></td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED API</td><td><span class="freq-badge">Daily</span></td><td>~1 day</td></tr>
+          <tr><td>US Regular Gas Price (USD/gallon)</td><td><code>GASREGW</code></td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED API (EIA)</td><td><span class="freq-badge">Weekly</span></td><td>~1 day</td></tr>
+          <tr><td>US Fed Gold Stock (USD Mn)</td><td><code>WOFSRBGSA</code></td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED API (Fed H.4.1)</td><td><span class="freq-badge">Weekly</span></td><td>~1 week</td></tr>
+          <tr><td>Total Forex Reserves (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>Foreign Currency Assets (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>Gold Reserves (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>SDRs (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>IMF Reserve Position (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>M3 Broad Money (INR Bn)</td><td><code>WSS Table 8</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>Bank Credit — SCB (INR Bn)</td><td><code>WSS Table 3</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>India CPI (Index, 2015=100)</td><td><code>INDCPIALLMINMEI</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Central Bank Rate (%)</td><td><code>IRSTCB01INM156N</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India 10yr G-Sec Yield (%)</td><td><code>INDIRLTLT01STM</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Real GDP (Mn INR)</td><td><code>NGDPRNSAXDCINQ</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via IMF</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Real Property Price (Index)</td><td><code>QINR628BIS</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via BIS</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Current Account Balance (USD Mn)</td><td><code>INDB6BLTT02STSAQ</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Financial Account Net (USD Mn)</td><td><code>INDB6FATC01CXCUQ</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
         </tbody>
       </table>
     </div>
@@ -764,17 +779,20 @@ function renderScorecards() {
         changeHTML = `<span class="card-change ${changeClass}">${arrow} ${sign}${dispDiff}</span>`;
       }
 
-      // Format date as DD/MM from any format (YYYY-MM-DD or DD-MMM-YYYY)
+      // Format date: DD/MM for daily/weekly, DD/MM/YYYY for monthly/quarterly
       const rawDate = latest.date || '';
+      const showYear = def.src === 'monthly' || def.src === 'quarterly';
       let dispDate = rawDate;
       const isoM = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (isoM) dispDate = `${isoM[3]}/${isoM[2]}`;
+      if (isoM) dispDate = showYear ? `${isoM[3]}/${isoM[2]}/${isoM[1]}` : `${isoM[3]}/${isoM[2]}`;
       else {
         const dmmM = rawDate.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
         if (dmmM) {
           const months = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',
                           Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
-          dispDate = `${dmmM[1]}/${months[dmmM[2]] || dmmM[2]}`;
+          dispDate = showYear
+            ? `${dmmM[1]}/${months[dmmM[2]] || dmmM[2]}/${dmmM[3]}`
+            : `${dmmM[1]}/${months[dmmM[2]] || dmmM[2]}`;
         }
       }
       const spark = buildSparkline(rows, def.col, latest.idx, def.country);
@@ -1077,7 +1095,10 @@ function updateHeader() {
   for (let i = d.length - 1; i >= 0; i--) {
     const date = d[i]['Date'];
     if (date) {
-      document.getElementById('last-updated-header').textContent = 'Data to ' + date;
+      // Convert YYYY-MM-DD to DD/MM/YYYY for display
+      const isoM = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const display = isoM ? `${isoM[3]}/${isoM[2]}/${isoM[1]}` : date;
+      document.getElementById('last-updated-header').textContent = 'Data to ' + display;
       return;
     }
   }
@@ -1533,18 +1554,33 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
     <div class="readme-section">
       <h3>Data Sources</h3>
       <table class="source-table">
-        <thead><tr><th>Indicator Group</th><th>Country</th><th>Source</th><th>Frequency</th><th>Lag</th></tr></thead>
+        <thead><tr><th>Indicator</th><th>Code</th><th>Country</th><th>Source</th><th>Frequency</th><th>Lag</th></tr></thead>
         <tbody>
-          <tr><td>Sensex, Nifty 50</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance (^BSESN, ^NSEI)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
-          <tr><td>USD/INR (market spot rate)</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance (INR=X)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
-          <tr><td>FII / DII net cash flows</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>NSE India via nsefin Python library</td><td><span class="freq-badge">Daily</span></td><td>Same day after 3:30pm IST</td></tr>
-          <tr><td>Gold futures, Brent crude</td><td><span class="source-pill pill-global">🌐</span></td><td>Yahoo Finance (GC=F, BZ=F)</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
-          <tr><td>US 10yr yield, Fed Funds Rate</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>Yahoo Finance (^TNX), FRED (DFF)</td><td><span class="freq-badge">Daily</span></td><td>Same day / 1-day lag</td></tr>
-          <tr><td>US retail gas price</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED (GASREGW) — EIA Monday survey</td><td><span class="freq-badge">Weekly</span></td><td>~1 day</td></tr>
-          <tr><td>US Fed gold stock</td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED (WOFSRBGSA) — Fed H.4.1</td><td><span class="freq-badge">Weekly</span></td><td>~1 week</td></tr>
-          <tr><td>RBI Forex Reserves, M3, Bank Credit</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI Weekly Statistical Supplement (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
-          <tr><td>India CPI, G-Sec yield, Central Bank Rate</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
-          <tr><td>India Real GDP, Property Prices, Current Account</td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via IMF/BIS</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>Sensex</td><td><code>^BSESN</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>Nifty 50</td><td><code>^NSEI</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>USD/INR (market spot rate)</td><td><code>INR=X</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>FII Net Cash (INR Cr)</td><td><code>nsefin</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>NSE India via nsefin</td><td><span class="freq-badge">Daily</span></td><td>After 3:30pm IST</td></tr>
+          <tr><td>DII Net Cash (INR Cr)</td><td><code>nsefin</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>NSE India via nsefin</td><td><span class="freq-badge">Daily</span></td><td>After 3:30pm IST</td></tr>
+          <tr><td>US Gold Price (USD/oz)</td><td><code>GC=F</code></td><td><span class="source-pill pill-global">🌐</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>Brent Crude (USD/bbl)</td><td><code>BZ=F</code></td><td><span class="source-pill pill-global">🌐</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>US 10yr Yield (%)</td><td><code>^TNX</code></td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>Yahoo Finance</td><td><span class="freq-badge">Daily</span></td><td>Same day</td></tr>
+          <tr><td>US Fed Funds Rate (%)</td><td><code>DFF</code></td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED API</td><td><span class="freq-badge">Daily</span></td><td>~1 day</td></tr>
+          <tr><td>US Regular Gas Price (USD/gallon)</td><td><code>GASREGW</code></td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED API (EIA)</td><td><span class="freq-badge">Weekly</span></td><td>~1 day</td></tr>
+          <tr><td>US Fed Gold Stock (USD Mn)</td><td><code>WOFSRBGSA</code></td><td><span class="source-pill pill-usa">🇺🇸</span></td><td>FRED API (Fed H.4.1)</td><td><span class="freq-badge">Weekly</span></td><td>~1 week</td></tr>
+          <tr><td>Total Forex Reserves (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>Foreign Currency Assets (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>Gold Reserves (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>SDRs (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>IMF Reserve Position (USD Bn)</td><td><code>WSS Table 2</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>M3 Broad Money (INR Bn)</td><td><code>WSS Table 8</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>Bank Credit — SCB (INR Bn)</td><td><code>WSS Table 3</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>RBI WSS (scraped)</td><td><span class="freq-badge">Weekly</span></td><td>Friday publication</td></tr>
+          <tr><td>India CPI (Index, 2015=100)</td><td><code>INDCPIALLMINMEI</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Central Bank Rate (%)</td><td><code>IRSTCB01INM156N</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India 10yr G-Sec Yield (%)</td><td><code>INDIRLTLT01STM</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Monthly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Real GDP (Mn INR)</td><td><code>NGDPRNSAXDCINQ</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via IMF</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Real Property Price (Index)</td><td><code>QINR628BIS</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via BIS</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Current Account Balance (USD Mn)</td><td><code>INDB6BLTT02STSAQ</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
+          <tr><td>India Financial Account Net (USD Mn)</td><td><code>INDB6FATC01CXCUQ</code></td><td><span class="source-pill pill-india">🇮🇳</span></td><td>FRED via OECD</td><td><span class="freq-badge">Quarterly</span></td><td>6–14 weeks</td></tr>
         </tbody>
       </table>
     </div>
