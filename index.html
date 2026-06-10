@@ -577,29 +577,24 @@ function parseCSV(text, tabName) {
     const dateRaw = cells[0] ? cells[0].replace(/"/g,'').trim() : '';
     if (!dateRaw) continue;
 
-    // Skip timestamp rows (e.g. "6/7/2026 18:14:16")
-    if (/\d+\/\d+\/\d{4}\s+\d+:\d+/.test(dateRaw)) continue;
-
-    // Normalise M/D/YYYY or M/D/YYYY HH:MM:SS to YYYY-MM-DD
+    // Normalise ALL date formats to YYYY-MM-DD
+    // Handles: DD-MMM-YYYY, YYYY-MM-DD, M/D/YYYY, M/D/YYYY HH:MM:SS
     let dateNorm = dateRaw;
-    const mdyFull = dateRaw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (mdyFull) {
-      const mm = mdyFull[1].padStart(2,'0');
-      const dd = mdyFull[2].padStart(2,'0');
-      dateNorm = `${mdyFull[3]}-${mm}-${dd}`;
+    const mdyMatch = dateRaw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (mdyMatch) {
+      // M/D/YYYY or M/D/YYYY HH:MM:SS — Apps Script timestamp format
+      const mm = mdyMatch[1].padStart(2,'0');
+      const dd = mdyMatch[2].padStart(2,'0');
+      dateNorm = `${mdyMatch[3]}-${mm}-${dd}`;
     }
 
     const obj = {};
     headers.forEach((h, j) => {
       obj[h] = cleanVal(cells[j] || '');
     });
-    // Overwrite date fields with normalised YYYY-MM-DD value
-    // (must come AFTER forEach which sets raw value from cells[0])
-    if (obj['Date']  !== undefined) obj['Date']   = dateNorm;
+    // Overwrite date with normalised value (after forEach which sets raw value)
+    if (obj['Date']   !== undefined) obj['Date']   = dateNorm;
     if (obj['Period'] !== undefined) obj['Period'] = dateNorm;
-    // Normalise date key
-    if (obj['Date'] !== undefined) obj['Date'] = dateRaw;
-    else if (obj['Period'] !== undefined) obj['Period'] = dateRaw;
 
     rows.push(obj);
   }
