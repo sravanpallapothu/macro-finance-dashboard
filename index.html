@@ -87,6 +87,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
 .scorecard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.9rem;margin-bottom:.5rem}
 
 /* ── Scorecard tile ── */
+.sparkline{display:block;margin-left:auto;opacity:.7}
 .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem .9rem;box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s;position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .card.india::before{background:var(--india)}
@@ -348,8 +349,16 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
   <div class="ts-shell">
     <div class="ts-controls">
       <div>
-        <label>Indicator</label>
+        <label>Indicator 1</label>
         <select id="ts-indicator"></select>
+      </div>
+      <div>
+        <label>Indicator 2 <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <select id="ts-indicator-2"><option value="">— None —</option></select>
+      </div>
+      <div>
+        <label>Indicator 3 <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <select id="ts-indicator-3"><option value="">— None —</option></select>
       </div>
       <div>
         <label>Range</label>
@@ -492,7 +501,7 @@ const SCORECARD_DEFS = {
     { label:'DII Net Cash', col:'DII Net Cash (INR Cr)', src:'daily', unit:'₹ Cr',    country:'india', prec:0 },
   ],
   'sc-commodities': [
-    { label:'Gold',        col:'Gold (USD/oz)',         src:'daily',  unit:'USD/oz',  country:'global', prec:2 },
+    { label:'US Gold Price',col:'Gold (USD/oz)',         src:'daily',  unit:'USD/oz',  country:'global', prec:2 },
     { label:'Brent Crude', col:'Brent Crude (USD/bbl)', src:'daily',  unit:'USD/bbl', country:'global', prec:2 },
     { label:'US Gas',      col:'US Regular Gas Price (USD/gallon)', src:'weekly', unit:'USD/gal', country:'usa', prec:3 },
   ],
@@ -698,6 +707,32 @@ function fmt(v, prec) {
 }
 
 // ── Render scorecards ─────────────────────────────────────────
+function buildSparkline(rows, col, currentIdx, colour) {
+  // Get up to 14 non-missing values ending at currentIdx
+  const vals = [];
+  for (let i = currentIdx; i >= 0 && vals.length < 14; i--) {
+    const v = parseFloat((rows[i][col]||'').toString().replace(/,/g,''));
+    if (!isNaN(v) && v !== -999) vals.unshift(v);
+  }
+  if (vals.length < 2) return '';
+
+  const W = 64, H = 24, pad = 2;
+  const minV = Math.min(...vals);
+  const maxV = Math.max(...vals);
+  const range = maxV - minV || 1;
+  const pts = vals.map((v, i) => {
+    const x = pad + (i / (vals.length - 1)) * (W - pad * 2);
+    const y = H - pad - ((v - minV) / range) * (H - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  const lineCol = '#4a90d9';
+
+  return `<svg class="sparkline" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <polyline points="${pts}" fill="none" stroke="${lineCol}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
 function renderScorecards() {
   const panelMissing = { daily:[], weekly:[], monthly:[], quarterly:[] };
 
@@ -740,14 +775,20 @@ function renderScorecards() {
           dispDate = `${dmmM[1]}/${months[dmmM[2]] || dmmM[2]}`;
         }
       }
+      const spark = buildSparkline(rows, def.col, latest.idx, def.country);
       grid.insertAdjacentHTML('beforeend', `
         <div class="card ${def.country}">
-          <div class="card-label">${def.label}</div>
-          <div class="card-value">${fmt(latest.value, def.prec)}</div>
-          <div class="card-meta">
-            ${changeHTML}
-            <span class="card-unit">${def.unit}</span>
-            <span class="card-period">${dispDate}</span>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+            <div style="flex:1;min-width:0">
+              <div class="card-label">${def.label}</div>
+              <div class="card-value">${fmt(latest.value, def.prec)}</div>
+              <div class="card-meta">
+                ${changeHTML}
+                <span class="card-unit">${def.unit}</span>
+                <span class="card-period">${dispDate}</span>
+              </div>
+            </div>
+            <div style="flex-shrink:0;padding-top:4px">${spark}</div>
           </div>
         </div>
       `);
@@ -769,82 +810,129 @@ function renderScorecards() {
 
 // ── Populate time series dropdown ─────────────────────────────
 function populateTsDropdown() {
-  const sel = document.getElementById('ts-indicator');
-  sel.innerHTML = '';
   const groups = { daily:'📅 Daily', weekly:'📆 Weekly (FRED)', rbi_weekly:'📆 Weekly (RBI WSS)', monthly:'🗓 Monthly', quarterly:'📊 Quarterly' };
   const dateKeys = new Set(['Date','Period']);
-  Object.entries(groups).forEach(([src, label]) => {
-    const rows = DATA[src];
-    if (!rows.length) return;
-    const cols = Object.keys(rows[0]).filter(k => !dateKeys.has(k));
-    if (!cols.length) return;
-    const og = document.createElement('optgroup');
-    og.label = label;
-    cols.forEach(col => {
-      const opt = document.createElement('option');
-      opt.value = JSON.stringify({col, src});
-      opt.textContent = col;
-      og.appendChild(opt);
+
+  function buildOptions() {
+    const fragment = document.createDocumentFragment();
+    Object.entries(groups).forEach(([src, label]) => {
+      const rows = DATA[src];
+      if (!rows.length) return;
+      const cols = Object.keys(rows[0]).filter(k => !dateKeys.has(k));
+      if (!cols.length) return;
+      const og = document.createElement('optgroup');
+      og.label = label;
+      cols.forEach(col => {
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify({col, src});
+        opt.textContent = col;
+        og.appendChild(opt);
+      });
+      fragment.appendChild(og);
     });
-    sel.appendChild(og);
+    return fragment;
+  }
+
+  // Indicator 1 — required
+  const sel1 = document.getElementById('ts-indicator');
+  sel1.innerHTML = '';
+  sel1.appendChild(buildOptions());
+
+  // Indicators 2 & 3 — optional, start with blank option
+  ['ts-indicator-2','ts-indicator-3'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">— None —</option>';
+    sel.appendChild(buildOptions());
   });
 }
 
 // ── Time series ───────────────────────────────────────────────
-function renderTimeSeries() {
-  const sel = document.getElementById('ts-indicator');
-  if (!sel.value) return;
-  const {col, src} = JSON.parse(sel.value);
-  const rows = DATA[src];
-  if (!rows.length) return;
+// ── Global date helpers (used by time series + deep dive) ──────
+function parseAnyDate(s) {
+  if (!s) return null;
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
+  const dmy = s.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
+  if (dmy) return new Date(dmy[2]+' '+dmy[1]+' '+dmy[3]);
+  return null;
+}
+function toISO(s) {
+  if (!s) return '';
+  const iso = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (iso) return iso[1];
+  const dmy = s.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
+  if (dmy) {
+    const m={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',
+             Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+    return `${dmy[3]}-${m[dmy[2]]||'01'}-${dmy[1]}`;
+  }
+  return s.slice(0,10);
+}
 
-  const dateKey = rows[0]['Date'] !== undefined ? 'Date' : 'Period';
+function renderTimeSeries() {
+  const colours = ['#c84b31','#1a4480','#2d6a4f'];
+  const selIds = ['ts-indicator','ts-indicator-2','ts-indicator-3'];
   const now = new Date();
 
-  // Parse any date format to a JS Date reliably
-  function parseDate(s) {
-    if (!s) return null;
-    // YYYY-MM-DD
-    const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
-    // DD-MMM-YYYY
-    const dmy = s.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
-    if (dmy) return new Date(dmy[2]+' '+dmy[1]+' '+dmy[3]);
-    return new Date(s);
+  // Build one filtered series per selector
+  function buildSeries(selId, colourIdx) {
+    const sel = document.getElementById(selId);
+    if (!sel || !sel.value) return null;
+    const {col, src} = JSON.parse(sel.value);
+    const rows = DATA[src];
+    if (!rows.length) return null;
+    const dateKey = rows[0]['Date'] !== undefined ? 'Date' : 'Period';
+
+    let filtered = rows.filter(r => !isMissing(r[col]));
+    if (tsRange.mode === 'ytd') {
+      const jan1 = new Date(now.getFullYear(), 0, 1);
+      filtered = filtered.filter(r => { const d = parseAnyDate(r[dateKey]); return d && d >= jan1; });
+    } else if (tsRange.mode === 'days' && tsRange.days > 0) {
+      const cut = new Date(now); cut.setDate(cut.getDate() - tsRange.days);
+      filtered = filtered.filter(r => { const d = parseAnyDate(r[dateKey]); return d && d >= cut; });
+    }
+    const xs = filtered.map(r => toISO(r[dateKey]));
+    const ys = filtered.map(r => parseFloat(r[col]));
+    return {xs, ys, col, src, colour: colours[colourIdx]};
   }
 
-  let filtered = rows.filter(r => !isMissing(r[col]));
+  const series = selIds.map((id, i) => buildSeries(id, i)).filter(Boolean);
+  if (!series.length) return;
 
-  if (tsRange.mode === 'ytd') {
-    const jan1 = new Date(now.getFullYear(), 0, 1);
-    filtered = filtered.filter(r => { const d = parseDate(r[dateKey]); return d && d >= jan1; });
-  } else if (tsRange.mode === 'days' && tsRange.days > 0) {
-    const cut = new Date(now); cut.setDate(cut.getDate() - tsRange.days);
-    filtered = filtered.filter(r => { const d = parseDate(r[dateKey]); return d && d >= cut; });
-  }
+  currentTsData = series[0]; // for CSV download
 
-  // Strip any time component from dates — keep YYYY-MM-DD only
-  const xs = filtered.map(r => (r[dateKey] || '').slice(0, 10));
-  const ys = filtered.map(r => parseFloat(r[col]));
-  currentTsData = {xs, ys, col, src};
-
-  const colours = {daily:'#c84b31', weekly:'#2d6a4f', monthly:'#1a4480', quarterly:'#5a4a8a'};
-
-  Plotly.newPlot('ts-chart', [{
-    x:xs, y:ys, type:'scatter', mode:'lines', name:col,
-    line:{color: colours[src]||'#c84b31', width:2},
-    hovertemplate:'<b>%{x|%d %b %Y}</b><br>%{y}<extra></extra>',
+  const traces = series.map((s, i) => ({
+    x: s.xs, y: s.ys, type:'scatter', mode:'lines', name: s.col,
+    line: {color: s.colour, width: 2},
+    hovertemplate: '<b>%{x|%d %b %Y}</b><br>%{y}<extra></extra>',
     connectgaps: false,
-  }], {
-    margin:{t:35,r:20,b:50,l:70},
+    yaxis: i === 0 ? 'y' : 'y2',
+  }));
+
+  const hasTwo = series.length > 1;
+  const layout = {
+    margin:{t:40, r:hasTwo?70:20, b:hasTwo?80:60, l:70},
     paper_bgcolor:'transparent', plot_bgcolor:'transparent',
     font:{family:'DM Sans, sans-serif', size:12, color:'#4a5568'},
     xaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false,
            type:'date', tickformat:'%d %b %Y'},
     yaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false,
-           title:{text: col.length>35 ? col.slice(0,35)+'…' : col, font:{size:11}}},
-    title:{text: col, font:{size:14, family:'DM Serif Display, serif'}, x:0.02},
+           title:{text:series[0].col.length>30?series[0].col.slice(0,30)+'…':series[0].col, font:{size:10}},
+           color: series[0].colour},
+    yaxis2: hasTwo ? {overlaying:'y', side:'right', showgrid:false,
+           title:{text:series[1].col.length>30?series[1].col.slice(0,30)+'…':series[1].col, font:{size:10}},
+           color: series[1].colour} : undefined,
+    title:{text: series.map(s=>s.col).join(' vs '), font:{size:13, family:'DM Serif Display, serif'}, x:0.02},
     hovermode:'x unified',
+    showlegend: true,
+    legend:{
+      orientation:'h',
+      x: 0, y: -0.2,
+      font:{size:11},
+      bgcolor:'rgba(255,255,255,0.8)',
+      bordercolor:'#e2ddd6',
+      borderwidth:1,
+    },
     hoverlabel:{bgcolor:'#1a1a2e', font:{color:'#fff', family:'DM Mono, monospace', size:12}},
   }, {responsive:true, displayModeBar:false});
 
@@ -885,7 +973,7 @@ function renderDeepDive() {
     const dk = rows.length && rows[0]['Date'] !== undefined ? 'Date' : 'Period';
     const xs=[], ys=[];
     rows.forEach(r => {
-      if (!isMissing(r[col])) { xs.push(r[dk]); ys.push(parseFloat(r[col])); }
+      if (!isMissing(r[col])) { xs.push(toISO(r[dk])); ys.push(parseFloat(r[col])); }
     });
     return {xs, ys};
   }
@@ -1107,6 +1195,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
 .scorecard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.9rem;margin-bottom:.5rem}
 
 /* ── Scorecard tile ── */
+.sparkline{display:block;margin-left:auto;opacity:.7}
 .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem .9rem;box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s;position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .card.india::before{background:var(--india)}
@@ -1368,8 +1457,16 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
   <div class="ts-shell">
     <div class="ts-controls">
       <div>
-        <label>Indicator</label>
+        <label>Indicator 1</label>
         <select id="ts-indicator"></select>
+      </div>
+      <div>
+        <label>Indicator 2 <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <select id="ts-indicator-2"><option value="">— None —</option></select>
+      </div>
+      <div>
+        <label>Indicator 3 <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <select id="ts-indicator-3"><option value="">— None —</option></select>
       </div>
       <div>
         <label>Range</label>
