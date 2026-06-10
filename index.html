@@ -936,7 +936,9 @@ function renderTimeSeries() {
       borderwidth:1,
     },
     hoverlabel:{bgcolor:'#1a1a2e', font:{color:'#fff', family:'DM Mono, monospace', size:12}},
-  }, {responsive:true, displayModeBar:false});
+  };
+
+  Plotly.newPlot('ts-chart', traces, layout, {responsive:true, displayModeBar:false});
 
   document.getElementById('ts-placeholder').style.display = 'none';
   document.getElementById('ts-chart').style.display = 'block';
