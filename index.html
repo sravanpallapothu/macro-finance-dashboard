@@ -242,7 +242,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
       <!-- DAILY PANEL -->
       <div class="freq-panel active" id="panel-daily">
         <div class="data-banner">
-          <span>Latest trading day values. Arrows = change from previous trading day.</span>
+          <span>Latest trading day values. Arrows = change from previous trading day. Sparklines show directional trend over previous 14 non-missing values.</span>
           <div class="source-pills">
             <span class="source-pill pill-india">🇮🇳 India</span>
             <span class="source-pill pill-usa">🇺🇸 USA</span>
@@ -879,8 +879,10 @@ function renderTimeSeries() {
   // Build one filtered seriesList item per selector
   function buildSeries(selId, colourIdx) {
     const sel = document.getElementById(selId);
-    if (!sel || !sel.value) return null;
-    const {col, src} = JSON.parse(sel.value);
+    if (!sel || !sel.value || sel.value === '') return null;
+    let parsed;
+    try { parsed = JSON.parse(sel.value); } catch(e) { return null; }
+    const {col, src} = parsed;
     const rows = DATA[src];
     if (!rows.length) return null;
     const dateKey = rows[0]['Date'] !== undefined ? 'Date' : 'Period';
@@ -1354,7 +1356,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
       <!-- DAILY PANEL -->
       <div class="freq-panel active" id="panel-daily">
         <div class="data-banner">
-          <span>Latest trading day values. Arrows = change from previous trading day.</span>
+          <span>Latest trading day values. Arrows = change from previous trading day. Sparklines show directional trend over previous 14 non-missing values.</span>
           <div class="source-pills">
             <span class="source-pill pill-india">🇮🇳 India</span>
             <span class="source-pill pill-usa">🇺🇸 USA</span>
