@@ -727,7 +727,19 @@ function renderScorecards() {
         changeHTML = `<span class="card-change ${changeClass}">${arrow} ${sign}${dispDiff}</span>`;
       }
 
-      const dispDate = (latest.date || '').replace(/^\d{4}-/,'');
+      // Format date as DD/MM from any format (YYYY-MM-DD or DD-MMM-YYYY)
+      const rawDate = latest.date || '';
+      let dispDate = rawDate;
+      const isoM = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (isoM) dispDate = `${isoM[3]}/${isoM[2]}`;
+      else {
+        const dmmM = rawDate.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
+        if (dmmM) {
+          const months = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',
+                          Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+          dispDate = `${dmmM[1]}/${months[dmmM[2]] || dmmM[2]}`;
+        }
+      }
       grid.insertAdjacentHTML('beforeend', `
         <div class="card ${def.country}">
           <div class="card-label">${def.label}</div>
@@ -789,14 +801,26 @@ function renderTimeSeries() {
   const dateKey = rows[0]['Date'] !== undefined ? 'Date' : 'Period';
   const now = new Date();
 
+  // Parse any date format to a JS Date reliably
+  function parseDate(s) {
+    if (!s) return null;
+    // YYYY-MM-DD
+    const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
+    // DD-MMM-YYYY
+    const dmy = s.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
+    if (dmy) return new Date(dmy[2]+' '+dmy[1]+' '+dmy[3]);
+    return new Date(s);
+  }
+
   let filtered = rows.filter(r => !isMissing(r[col]));
 
   if (tsRange.mode === 'ytd') {
     const jan1 = new Date(now.getFullYear(), 0, 1);
-    filtered = filtered.filter(r => new Date(r[dateKey]) >= jan1);
+    filtered = filtered.filter(r => { const d = parseDate(r[dateKey]); return d && d >= jan1; });
   } else if (tsRange.mode === 'days' && tsRange.days > 0) {
     const cut = new Date(now); cut.setDate(cut.getDate() - tsRange.days);
-    filtered = filtered.filter(r => new Date(r[dateKey]) >= cut);
+    filtered = filtered.filter(r => { const d = parseDate(r[dateKey]); return d && d >= cut; });
   }
 
   const xs = filtered.map(r => r[dateKey]);
