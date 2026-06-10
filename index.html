@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Financial & Macro Tracker</title>
+<title>Financial & Macroeconomic Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -188,7 +188,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
 </div>
 
 <header class="site-header">
-  <h1><span>🇮🇳</span> Financial &amp; Macro Tracker</h1>
+  <h1>Financial &amp; Macroeconomic Tracker</h1>
   <div class="header-meta">
     <span><span class="live-dot"></span> Auto-updated</span>
     <span id="last-updated-header">—</span>
@@ -366,7 +366,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
           <button class="range-btn" onclick="setRange(30,this)">1M</button>
           <button class="range-btn" onclick="setRange(90,this)">3M</button>
           <button class="range-btn" onclick="setRange(180,this)">6M</button>
-          <button class="range-btn active" onclick="setRange(0,this,'ytd')">YTD</button>
+          <button class="range-btn active" onclick="setRange(0,this,'ytd')" title="Year to Date — Jan 1 to today">YTD</button>
           <button class="range-btn" onclick="setRange(365,this)">1Y</button>
           <button class="range-btn" onclick="setRange(0,this,'all')">All</button>
         </div>
@@ -381,7 +381,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
       <div id="ts-chart" style="display:none;height:400px"></div>
     </div>
     <div class="ts-footer">
-      <span>Values of -999 filtered out (market closed / not yet released).</span>
+      <span>Values of -999 filtered out (market closed / not yet released). &nbsp;·&nbsp; <strong>YTD</strong> = Year to Date (Jan 1 to today). &nbsp;·&nbsp; <strong>All</strong> = full history from first available value.</span>
       <button class="dl-btn" onclick="downloadCSV()">⬇ CSV</button>
     </div>
   </div>
@@ -405,7 +405,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
 <div class="page" id="page-about">
   <div class="about-shell">
     <div class="readme-hero">
-      <h2>Financial &amp; Macro Tracker</h2>
+      <h2>Financial &amp; Macroeconomic Tracker</h2>
       <p>An open-access, auto-updating dashboard covering Indian and global financial, monetary, and macroeconomic indicators. Built as a public good — free to use, free to share.</p>
     </div>
 
@@ -840,11 +840,12 @@ function populateTsDropdown() {
   sel1.innerHTML = '';
   sel1.appendChild(buildOptions());
 
-  // Indicators 2 & 3 — optional, start with blank option
+  // Indicators 2 & 3 — optional, blank option must stay selected
   ['ts-indicator-2','ts-indicator-3'].forEach(id => {
     const sel = document.getElementById(id);
     sel.innerHTML = '<option value="">— None —</option>';
     sel.appendChild(buildOptions());
+    sel.selectedIndex = 0; // force blank option to be selected
   });
 }
 
@@ -1302,7 +1303,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
 </div>
 
 <header class="site-header">
-  <h1><span>🇮🇳</span> Financial &amp; Macro Tracker</h1>
+  <h1>Financial &amp; Macroeconomic Tracker</h1>
   <div class="header-meta">
     <span><span class="live-dot"></span> Auto-updated</span>
     <span id="last-updated-header">—</span>
@@ -1480,7 +1481,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
           <button class="range-btn" onclick="setRange(30,this)">1M</button>
           <button class="range-btn" onclick="setRange(90,this)">3M</button>
           <button class="range-btn" onclick="setRange(180,this)">6M</button>
-          <button class="range-btn active" onclick="setRange(0,this,'ytd')">YTD</button>
+          <button class="range-btn active" onclick="setRange(0,this,'ytd')" title="Year to Date — Jan 1 to today">YTD</button>
           <button class="range-btn" onclick="setRange(365,this)">1Y</button>
           <button class="range-btn" onclick="setRange(0,this,'all')">All</button>
         </div>
@@ -1495,7 +1496,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
       <div id="ts-chart" style="display:none;height:400px"></div>
     </div>
     <div class="ts-footer">
-      <span>Values of -999 filtered out (market closed / not yet released).</span>
+      <span>Values of -999 filtered out (market closed / not yet released). &nbsp;·&nbsp; <strong>YTD</strong> = Year to Date (Jan 1 to today). &nbsp;·&nbsp; <strong>All</strong> = full history from first available value.</span>
       <button class="dl-btn" onclick="downloadCSV()">⬇ CSV</button>
     </div>
   </div>
@@ -1519,7 +1520,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);font-siz
 <div class="page" id="page-about">
   <div class="about-shell">
     <div class="readme-hero">
-      <h2>Financial &amp; Macro Tracker</h2>
+      <h2>Financial &amp; Macroeconomic Tracker</h2>
       <p>An open-access, auto-updating dashboard covering Indian and global financial, monetary, and macroeconomic indicators. Built as a public good — free to use, free to share.</p>
     </div>
 
