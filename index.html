@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Financial & Macro Tracker</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --ink:       #1a1a2e;
@@ -876,7 +876,7 @@ function renderTimeSeries() {
   const selIds = ['ts-indicator','ts-indicator-2','ts-indicator-3'];
   const now = new Date();
 
-  // Build one filtered series per selector
+  // Build one filtered seriesList item per selector
   function buildSeries(selId, colourIdx) {
     const sel = document.getElementById(selId);
     if (!sel || !sel.value) return null;
@@ -898,12 +898,12 @@ function renderTimeSeries() {
     return {xs, ys, col, src, colour: colours[colourIdx]};
   }
 
-  const series = selIds.map((id, i) => buildSeries(id, i)).filter(Boolean);
-  if (!series.length) return;
+  const seriesList = selIds.map((id, i) => buildSeries(id, i)).filter(Boolean);
+  if (!seriesList.length) return;
 
-  currentTsData = series[0]; // for CSV download
+  currentTsData = seriesList[0]; // for CSV download
 
-  const traces = series.map((s, i) => ({
+  const traces = seriesList.map((s, i) => ({
     x: s.xs, y: s.ys, type:'scatter', mode:'lines', name: s.col,
     line: {color: s.colour, width: 2},
     hovertemplate: '<b>%{x|%d %b %Y}</b><br>%{y}<extra></extra>',
@@ -911,7 +911,7 @@ function renderTimeSeries() {
     yaxis: i === 0 ? 'y' : 'y2',
   }));
 
-  const hasTwo = series.length > 1;
+  const hasTwo = seriesList.length > 1;
   const layout = {
     margin:{t:40, r:hasTwo?70:20, b:hasTwo?80:60, l:70},
     paper_bgcolor:'transparent', plot_bgcolor:'transparent',
@@ -919,12 +919,12 @@ function renderTimeSeries() {
     xaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false,
            type:'date', tickformat:'%d %b %Y'},
     yaxis:{showgrid:true, gridcolor:'#e2ddd6', showline:false, zeroline:false,
-           title:{text:series[0].col.length>30?series[0].col.slice(0,30)+'…':series[0].col, font:{size:10}},
-           color: series[0].colour},
+           title:{text:seriesList[0].col.length>30?seriesList[0].col.slice(0,30)+'…':seriesList[0].col, font:{size:10}},
+           color: seriesList[0].colour},
     yaxis2: hasTwo ? {overlaying:'y', side:'right', showgrid:false,
-           title:{text:series[1].col.length>30?series[1].col.slice(0,30)+'…':series[1].col, font:{size:10}},
-           color: series[1].colour} : undefined,
-    title:{text: series.map(s=>s.col).join(' vs '), font:{size:13, family:'DM Serif Display, serif'}, x:0.02},
+           title:{text:seriesList[1].col.length>30?seriesList[1].col.slice(0,30)+'…':seriesList[1].col, font:{size:10}},
+           color: seriesList[1].colour} : undefined,
+    title:{text: seriesList.map(s=>s.col).join(' vs '), font:{size:13, family:'DM Serif Display, serif'}, x:0.02},
     hovermode:'x unified',
     showlegend: true,
     legend:{
@@ -1088,7 +1088,7 @@ function dismissOverlay() {
 }
 
 // Hard timeout — dismiss overlay after 8 seconds no matter what
-setTimeout(dismissOverlay, 8000);
+setTimeout(dismissOverlay, 3000);
 
 (async () => {
   try {
@@ -1116,7 +1116,7 @@ setTimeout(dismissOverlay, 8000);
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --ink:       #1a1a2e;
