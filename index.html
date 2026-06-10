@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Financial & Macro Tracker</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root {
   --ink:       #1a1a2e;
@@ -709,8 +709,10 @@ function fmt(v, prec) {
 // ── Render scorecards ─────────────────────────────────────────
 function buildSparkline(rows, col, currentIdx, colour) {
   // Get up to 14 non-missing values ending at currentIdx
+  // Limit scan to last 40 rows max to keep this fast
   const vals = [];
-  for (let i = currentIdx; i >= 0 && vals.length < 14; i--) {
+  const scanFrom = Math.max(0, currentIdx - 40);
+  for (let i = currentIdx; i >= scanFrom && vals.length < 14; i--) {
     const v = parseFloat((rows[i][col]||'').toString().replace(/,/g,''));
     if (!isNaN(v) && v !== -999) vals.unshift(v);
   }
@@ -1114,7 +1116,7 @@ setTimeout(dismissOverlay, 8000);
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root {
   --ink:       #1a1a2e;
